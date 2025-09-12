@@ -1,0 +1,272 @@
+// src/components/CitasModal.jsx
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Helper para obtener las clases de color de fondo
+const getEstadoClasses = (estado) => {
+  switch (estado) {
+    case 'cancelada':
+      return 'bg-red-200';
+    case 'no vino':
+      return 'bg-orange-200';
+    case 'programada':
+      return 'bg-blue-200';
+    case 'completada':
+      return 'bg-green-200';
+    default:
+      return 'bg-gray-200';
+  }
+};
+
+const CitasModal = ({
+  selectedDay,
+  selectedCell,
+  selectedDate,
+  showModal,
+  setShowModal,
+  citasByDate,
+  citasByDay,
+  setShowEditModal,
+  setSelectedAppointment,
+  showEditModal,
+  selectedAppointment,
+  handleUpdate,
+  handleDelete,
+}) => {
+  // SVG del ícono de ojo
+  const EyeIcon = () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-eye-icon lucide-eye text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+    >
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+
+  // Helper para obtener la fecha de un día de la semana
+  const getDateForDay = useCallback((date, day) => {
+    const current = new Date(date);
+    const monday = new Date(current.setDate(current.getDate() - current.getDay() + 1));
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const dayIndex = days.indexOf(day);
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + dayIndex);
+    return targetDate.toISOString().split("T")[0];
+  }, []);
+
+  const hours = [
+    "07:00:00",
+    "08:00:00",
+    "09:00:00",
+    "10:00:00",
+    "14:00:00",
+    "15:00:00",
+    "16:00:00",
+    "17:00:00",
+  ];
+
+  return (
+    <>
+      {/* Modal de citas por hora */}
+      {showModal && selectedCell && !selectedDay && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+            <h3 className="font-bold mb-2 text-gray-800">
+              Citas en {selectedCell.day} a las {selectedCell.hour.slice(0, 5)}
+            </h3>
+            {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.length === 0 ? (
+              <p className="text-gray-500">No hay citas</p>
+            ) : (
+              <ul className="text-sm space-y-2 flex flex-col items-center">
+                {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.map((c) => (
+                  <li key={c.id} className={`text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                    <div>
+                      {c.paciente} (Doc: {c.id}) - Hora: {c.hora.slice(0, 5)} - Estado: {c.estado}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span onClick={() => {
+                        setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
+                        setShowEditModal(true);
+                        setShowModal(false);
+                      }}>
+                        <EyeIcon />
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex justify-end mt-4">
+              <Button
+                className="cursor-pointer"
+                variant="outline"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedCell(null);
+                }}
+              >
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de citas por día */}
+      {showModal && selectedDay && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-[28rem] max-h-[80vh] flex flex-col">
+            <h3 className="font-bold mb-4 text-gray-800">Citas en {selectedDay}</h3>
+            {citasByDay[getDateForDay(selectedDate, selectedDay)]?.length === 0 ? (
+              <p className="text-gray-500">No hay citas este día</p>
+            ) : (
+              <div className="overflow-y-auto pr-2 flex-grow">
+                <div className="space-y-3">
+                  {hours.map((hour) => {
+                    const citasHora = citasByDate[`${getDateForDay(selectedDate, selectedDay)}-${hour.slice(0, 2)}`] || [];
+                    return (
+                      <div key={hour}>
+                        <p className="font-semibold text-gray-700">{hour.slice(0, 5)}</p>
+                        {citasHora.length === 0 ? (
+                          <p className="text-gray-400 text-sm">Sin citas</p>
+                        ) : (
+                          <ul className="text-sm space-y-2 flex flex-col items-center">
+                            {citasHora.map((c) => (
+                              <li key={c.id} className={`text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                                <div>
+                                  {c.paciente} (Doc: {c.id}) - Hora: {c.hora.slice(0, 5)} - Estado: {c.estado}
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span onClick={() => {
+                                    setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
+                                    setShowEditModal(true);
+                                    setShowModal(false);
+                                  }}>
+                                    <EyeIcon />
+                                  </span>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end mt-4">
+              <Button
+                className="cursor-pointer"
+                variant="outline"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedDay(null);
+                }}
+              >
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para EDITAR, ELIMINAR y VER citas (con campos de documento y nombre deshabilitados) */}
+      {showEditModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+            <h3 className="font-bold mb-4 text-gray-800 text-center">
+              Gestionar Cita
+            </h3>
+            <form onSubmit={handleUpdate} className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700">Nombre del paciente</label>
+                <Input
+                  type="text"
+                  value={selectedAppointment.paciente}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700">Número de documento</label>
+                <Input
+                  type="text"
+                  value={selectedAppointment.id}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700">Fecha de la cita</label>
+                <Input
+                  type="date"
+                  value={selectedAppointment.fecha}
+                  onChange={(e) => setSelectedAppointment({ ...selectedAppointment, fecha: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700">Hora de la cita</label>
+                <Input
+                  type="time"
+                  value={selectedAppointment.hora.slice(0, 5)}
+                  onChange={(e) => setSelectedAppointment({ ...selectedAppointment, hora: `${e.target.value}:00` })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700">Estado</label>
+                <Select
+                  value={selectedAppointment.estado}
+                  onValueChange={(value) => setSelectedAppointment({ ...selectedAppointment, estado: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="programada">Programada</SelectItem>
+                    <SelectItem value="completada">Completada</SelectItem>
+                    <SelectItem value="no vino">No vino</SelectItem>
+                    <SelectItem value="pospuesta">Pospuesta</SelectItem>
+                    <SelectItem value="cancelada">Cancelada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-between items-center mt-4">
+                <Button type="button" variant="destructive" onClick={handleDelete} className="cursor-pointer">
+                  Eliminar
+                </Button>
+                <div className="flex space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer">
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="cursor-pointer">Guardar Cambios</Button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default CitasModal;
