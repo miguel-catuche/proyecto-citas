@@ -46,7 +46,7 @@ const getDateForDay = (date, day) => {
 // Hook de React para debouncing
 const useDebounce = (callback, delay) => {
   const timeoutRef = useRef(null);
-  
+
   return useCallback((...args) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -77,7 +77,7 @@ export default function HorarioMedico() {
   const [showForm, setShowForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -211,20 +211,21 @@ export default function HorarioMedico() {
         >
           ← Semana anterior
         </Button>
-        <h2 className={`text-xl font-bold text-center ${mode === "view" ? "text-blue-600" : "text-orange-600"}`}>
-          Semana de {semanaActual} {mode === "edit" && "(Editando)"}
-        </h2>
+
+        <div className="flex flex-col items-center justify-center mb-4 gap-y-4 bg-white rounded shadow-md w-100 h-30">
+          <h2 className={`text-xl font-bold text-center ${mode === "view" ? "text-blue-600" : "text-orange-600"}`}>
+            Semana de {semanaActual}
+          </h2>
+          <Button className="cursor-pointer" onClick={() => setMode(mode === "view" ? "edit" : "view")}>
+            {mode === "view" ? "Añadir Agenda" : "Ver Agenda"}
+          </Button>
+        </div>
+
         <Button
           className="cursor-pointer bg-gradient-to-r from-purple-700 via-purple-700 to-blue-700 hover:from-purple-500 hover:via-purple-500 hover:to-blue-500 transition"
           onClick={() => cambiarSemana(1)}
         >
           Semana siguiente →
-        </Button>
-      </div>
-
-      <div className="flex justify-center mb-4">
-        <Button className="cursor-pointer" onClick={() => setMode(mode === "view" ? "edit" : "view")}>
-          Cambiar a {mode === "view" ? "Editar" : "Ver"}
         </Button>
       </div>
 
@@ -234,7 +235,7 @@ export default function HorarioMedico() {
         {days.map((day) => (
           <div
             key={day}
-            className="font-bold text-white shadow-md py-2 rounded text-center cursor-pointer bg-gradient-to-r from-blue-500 via-blue-500/75 to-green-400 hover:from-blue-400 hover:to-green-300 transition"
+            className="font-bold text-white shadow-md py-2 rounded text-center cursor-pointer bg-gradient-to-r from-blue-800 via-blue-600/85 to-blue-500 hover:from-blue-900 hover:to-blue-900 transition"
             onClick={() => {
               setSelectedDay(day);
               setSelectedCell(null);
@@ -247,7 +248,7 @@ export default function HorarioMedico() {
 
         {hours.map((hour) => (
           <React.Fragment key={hour}>
-            <div className="font-bold shadow-md text-white py-2 rounded flex items-center justify-center bg-gradient-to-r from-teal-400 via-teal-400 to-green-300">
+            <div className="font-bold text-white shadow-md py-2 flex items-center justify-center rounded bg-gradient-to-r from-blue-800 via-blue-600/85 to-blue-500">
               {hour.slice(0, 5)}
             </div>
 
@@ -259,13 +260,12 @@ export default function HorarioMedico() {
               return (
                 <Card
                   key={day + hour}
-                  className={`cursor-pointer h-20 flex items-center justify-center text-sm transition-colors rounded-lg ${
-                    mode === "edit"
-                      ? "bg-yellow-100 hover:bg-yellow-200"
+                  className={`cursor-pointer h-20 flex items-center justify-center text-sm transition-colors rounded-lg ${mode === "edit"
+                      ? "bg-yellow-300 hover:bg-yellow-500"
                       : tieneCitas
-                      ? "bg-green-200 hover:bg-green-300"
-                      : "bg-blue-50 hover:bg-blue-100"
-                  }`}
+                        ? "bg-green-400 hover:bg-green-500"
+                        : "bg-blue-50 hover:bg-blue-100"
+                    }`}
                   onClick={() => {
                     setSelectedCell({ day, hour });
                     setSelectedDay(null);
@@ -278,7 +278,7 @@ export default function HorarioMedico() {
                 >
                   <CardContent className="text-center">
                     {mode === "edit" ? (
-                      <p className="text-gray-800 font-medium">✏️ Añadir</p>
+                      <p className="text-gray-800 font-medium">Añadir Nuevo</p>
                     ) : tieneCitas ? (
                       <p className="font-semibold text-gray-800">{citasEnCelda.length} cita(s)</p>
                     ) : (
@@ -308,73 +308,73 @@ export default function HorarioMedico() {
               Nueva cita para el {selectedCell.day} ({getDateForDay(selectedDate, selectedCell.day)})
             </h3>
             <form onSubmit={handleSubmit} className="space-y-3">
-      {selectedClient ? (
-        // Formulario para cliente seleccionado
-        <>
-          <div>
-            <label className="block text-sm text-gray-700">Nombre del paciente</label>
-            <Input
-              type="text"
-              value={selectedClient.nombre}
-              readOnly
-              className="bg-gray-100 cursor-not-allowed"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-700">Número de documento</label>
-            <Input
-              type="text"
-              value={selectedClient.id}
-              readOnly
-              className="bg-gray-100 cursor-not-allowed"
-            />
-          </div>
-        </>
-      ) : (
-        // Buscador de clientes
-        <div>
-          <label className="block text-sm text-gray-700">Buscar paciente</label>
-          <Input
-            type="text"
-            placeholder="Buscar por nombre o documento..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-          {searchResults.length > 0 && (
-            <ul className="mt-2 border rounded-md max-h-48 overflow-y-auto">
-              {searchResults.map(client => (
-                <li
-                  key={client.id}
-                  className="p-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSelectClient(client)}
-                >
-                  {client.nombre} (Doc: {client.id})
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-      {selectedClient && (
-        <>
-          <div>
-            <label className="block text-sm text-gray-700">Hora de la cita</label>
-            <Input
-              type="time"
-              value={formData.hora}
-              onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
-              required
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Guardar</Button>
-          </div>
-        </>
-      )}
-    </form>
+              {selectedClient ? (
+                // Formulario para cliente seleccionado
+                <>
+                  <div>
+                    <label className="block text-sm text-gray-700">Nombre del paciente</label>
+                    <Input
+                      type="text"
+                      value={selectedClient.nombre}
+                      readOnly
+                      className="bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700">Número de documento</label>
+                    <Input
+                      type="text"
+                      value={selectedClient.id}
+                      readOnly
+                      className="bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                </>
+              ) : (
+                // Buscador de clientes
+                <div>
+                  <label className="block text-sm text-gray-700">Buscar paciente</label>
+                  <Input
+                    type="text"
+                    placeholder="Buscar por nombre o documento..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                  {searchResults.length > 0 && (
+                    <ul className="mt-2 border rounded-md max-h-48 overflow-y-auto">
+                      {searchResults.map(client => (
+                        <li
+                          key={client.id}
+                          className="p-2 cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSelectClient(client)}
+                        >
+                          {client.nombre} (Doc: {client.id})
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              {selectedClient && (
+                <>
+                  <div>
+                    <label className="block text-sm text-gray-700">Hora de la cita</label>
+                    <Input
+                      type="time"
+                      value={formData.hora}
+                      onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowForm(false)}>
+                      Cancelar
+                    </Button>
+                    <Button className={"cursor-pointer"} type="submit">Guardar</Button>
+                  </div>
+                </>
+              )}
+            </form>
           </div>
         </div>
       )}

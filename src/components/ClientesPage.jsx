@@ -81,7 +81,7 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
             <Card className="mb-6">
                 <CardContent className="p-4 flex justify-between items-center">
                     <h3 className="text-xl font-semibold text-gray-700">Lista de Clientes</h3>
-                    <Button onClick={openAddModal}>
+                    <Button className={"cursor-pointer"} onClick={openAddModal}>
                         Añadir Nuevo Cliente
                     </Button>
                 </CardContent>
@@ -102,13 +102,13 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                                 <TableCell className="font-medium">{cliente.id}</TableCell>
                                 <TableCell>{cliente.nombre}</TableCell>
                                 <TableCell className="flex justify-end space-x-2">
-                                    <Button variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
+                                    <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
                                         Historial
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
+                                    <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
                                         Editar
                                     </Button>
-                                    <Button variant="destructive" size="sm" onClick={() => openDeleteModal(cliente)}>
+                                    <Button className={"cursor-pointer"} variant="destructive" size="sm" onClick={() => openDeleteModal(cliente)}>
                                         Eliminar
                                     </Button>
                                 </TableCell>
@@ -143,10 +143,10 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                                 />
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
-                                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                                <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowAddModal(false)}>
                                     Cancelar
                                 </Button>
-                                <Button type="submit">Guardar</Button>
+                                <Button className={"cursor-pointer"} type="submit">Guardar</Button>
                             </div>
                         </form>
                     </div>
@@ -178,10 +178,10 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                                 />
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
-                                <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>
+                                <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowEditModal(false)}>
                                     Cancelar
                                 </Button>
-                                <Button type="submit">Guardar Cambios</Button>
+                                <Button className={"cursor-pointer"} type="submit">Guardar Cambios</Button>
                             </div>
                         </form>
                     </div>
@@ -217,10 +217,10 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                             ¿Estás seguro de que deseas eliminar a **{selectedClient.nombre}**?
                         </p>
                         <div className="flex justify-end space-x-2">
-                            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+                            <Button className={"cursor-pointer"} variant="outline" onClick={() => setShowDeleteModal(false)}>
                                 No
                             </Button>
-                            <Button variant="destructive" onClick={handleDeleteConfirm}>
+                            <Button className={"cursor-pointer"} variant="destructive" onClick={handleDeleteConfirm}>
                                 Sí, eliminar
                             </Button>
                         </div>
@@ -234,7 +234,7 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                     <div className="bg-white rounded-xl shadow-lg p-6 w-[600px]">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient.nombre}</h3>
-                            <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="bg-black text-white hover:bg-gray-800">Cerrar</Button>
+                            <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-black text-white hover:bg-gray-800">Cerrar</Button>
                         </div>
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                             {historialCitas.length > 0 ? (
