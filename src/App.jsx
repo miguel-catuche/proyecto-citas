@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import HorarioMedico from "./components/HorarioMedico";
 import Header from "./components/Header";
 import ClientesPage from "./components/ClientesPage";
-import Login from "./components/Login"; // 👈 importamos el login
+import Login from "./components/Login";
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // 👈 control de sesión
-  const [currentPage, setCurrentPage] = useState("horario");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 👈 login
+  const [currentPage, setCurrentPage] = useState('horario');
+
   const [clientes, setClientes] = useState([
     { id: "1020304050", nombre: "Ana López" },
     { id: "1030405060", nombre: "Carlos Ruiz" },
@@ -38,26 +39,25 @@ export default function App() {
   };
 
   const handleUpdateClient = (updatedClient) => {
-    setClientes(clientes.map((c) => (c.id === updatedClient.id ? updatedClient : c)));
+    setClientes(clientes.map(c => c.id === updatedClient.id ? updatedClient : c));
   };
 
   const handleDeleteClient = (id) => {
-    setClientes(clientes.filter((c) => c.id !== id));
+    setClientes(clientes.filter(c => c.id !== id));
   };
 
-  // 👇 Si NO está logueado, muestra el login
-  if (!isAuthenticated) {
-    return <Login onLogin={() => setIsAuthenticated(true)} />;
+  // 👇 Si no está logueado, muestro Login
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
 
-  // 👇 Si ya inició sesión, muestra la app normal
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <Header currentPage={currentPage} onPageChange={setCurrentPage} />
+      <Header currentPage={currentPage} onPageChange={setCurrentPage} onLogout={() => setIsLoggedIn(false)} />
       <div className="flex justify-center items-center p-6">
         <div className="w-full max-w-6xl">
-          {currentPage === "horario" && <HorarioMedico clientes={clientes} />}
-          {currentPage === "clientes" && (
+          {currentPage === 'horario' && <HorarioMedico clientes={clientes} />}
+          {currentPage === 'clientes' && (
             <ClientesPage
               clientes={clientes}
               citas={citas}
