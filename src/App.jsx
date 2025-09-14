@@ -1,73 +1,118 @@
-import React, { useState } from "react";
-import HorarioMedico from "./components/HorarioMedico";
-import Header from "./components/Header";
-import ClientesPage from "./components/ClientesPage";
-import Login from "./components/Login";
+// src/App.jsx
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { auth, db } from "./firebase";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import Login from "./pages/Login";
+import AuthenticatedApp from "./AuthenticatedApp";
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 👈 login
-  const [currentPage, setCurrentPage] = useState('horario');
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [clientes, setClientes] = useState([]);
+  const [citas, setCitas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [clientes, setClientes] = useState([
-    { id: "1020304050", nombre: "Ana López" },
-    { id: "1030405060", nombre: "Carlos Ruiz" },
-    { id: "1040506070", nombre: "María Torres" },
-    { id: "1050607080", nombre: "Luis Gómez" },
-    { id: "1060708090", nombre: "Sofía Pérez" },
-    { id: "1070809000", nombre: "Diego Vargas" },
-    { id: "1080900010", nombre: "Elena Díaz" },
-    { id: "1090001020", nombre: "Javier Castro" },
-    { id: "1100102030", nombre: "Gabriela Rios" },
-    { id: "9876543210", nombre: "Laura Mendoza" },
-    { id: "5432109876", nombre: "Roberto Fernández" },
-  ]);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  const [citas] = useState([
-    { clienteId: "1020304050", fecha: "2024-08-15", hora: "10:00", estado: "completada" },
-    { clienteId: "1020304050", fecha: "2024-09-10", hora: "15:30", estado: "programada" },
-    { clienteId: "1020304050", fecha: "2024-07-22", hora: "11:00", estado: "cancelada" },
-    { clienteId: "1020304050", fecha: "2024-06-05", hora: "08:30", estado: "no vino" },
-    { clienteId: "1020304050", fecha: "2024-05-18", hora: "14:45", estado: "completada" },
-    { clienteId: "1030405060", fecha: "2024-09-01", hora: "09:00", estado: "cancelada" },
-    { clienteId: "1080900010", fecha: "2024-08-20", hora: "11:00", estado: "completada" },
-    { clienteId: "1080900010", fecha: "2024-09-05", hora: "14:00", estado: "no vino" },
-    { clienteId: "9876543210", fecha: "2024-09-12", hora: "16:00", estado: "programada" },
-  ]);
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(collection(db, "clientes"), (snapshot) => {
+      const clientesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setClientes(clientesData);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
-  const handleAddClient = (newClient) => {
-    setClientes([...clientes, newClient]);
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(collection(db, "citas"), (snapshot) => {
+      const citasData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setCitas(citasData);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleAddClient = async (cliente) => {
+    await addDoc(collection(db, "clientes"), {
+      nombre: cliente.nombre,
+      documento: cliente.documento,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   };
 
-  const handleUpdateClient = (updatedClient) => {
-    setClientes(clientes.map(c => c.id === updatedClient.id ? updatedClient : c));
+  const handleUpdateClient = async (id, updatedData) => {
+    const ref = doc(db, "clientes", id);
+    await updateDoc(ref, { ...updatedData, updatedAt: serverTimestamp() });
   };
 
-  const handleDeleteClient = (id) => {
-    setClientes(clientes.filter(c => c.id !== id));
+  const handleDeleteClient = async (id) => {
+    await deleteDoc(doc(db, "clientes", id));
   };
 
-  // 👇 Si no está logueado, muestro Login
-  if (!isLoggedIn) {
-    return <Login onLogin={() => setIsLoggedIn(true)} />;
-  }
+  const handleAddCita = async (cita) => {
+    await addDoc(collection(db, "citas"), {
+      clienteId: cita.clienteId,
+      fecha: cita.fecha,
+      hora: cita.hora,
+      servicio: cita.servicio,
+      estado: "programada",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const handleUpdateCita = async (id, updatedData) => {
+    const ref = doc(db, "citas", id);
+    await updateDoc(ref, { ...updatedData, updatedAt: serverTimestamp() });
+  };
+
+  const handleDeleteCita = async (id) => {
+    await deleteDoc(doc(db, "citas", id));
+  };
+
+  const handleLogin = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  if (loading) return <p className="text-center mt-10">Cargando...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <Header currentPage={currentPage} onPageChange={setCurrentPage} onLogout={() => setIsLoggedIn(false)} />
-      <div className="flex justify-center items-center p-6">
-        <div className="w-full max-w-6xl">
-          {currentPage === 'horario' && <HorarioMedico clientes={clientes} />}
-          {currentPage === 'clientes' && (
-            <ClientesPage
-              clientes={clientes}
-              citas={citas}
-              onAddClient={handleAddClient}
-              onUpdateClient={handleUpdateClient}
-              onDeleteClient={handleDeleteClient}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <Router>
+      {user ? (
+        <AuthenticatedApp
+          clientes={clientes}
+          citas={citas}
+          onAddClient={handleAddClient}
+          onUpdateClient={handleUpdateClient}
+          onDeleteClient={handleDeleteClient}
+          onAddCita={handleAddCita}
+          onUpdateCita={handleUpdateCita}
+          onDeleteCita={handleDeleteCita}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <Routes>
+          <Route
+            path="/login"
+            element={<Login onLogin={handleLogin} />}
+          />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      )}
+    </Router>
   );
-}
+};
+
+export default App;

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import CitasModal from "./CitasModal";
+import CitasModal from "../components/CitasModal";
 
 const hours = [
   "07:00:00",
@@ -202,6 +202,7 @@ export default function HorarioMedico() {
   };
 
   return (
+    
     <div className="p-6">
       {/* Header y botones de navegación */}
       <div className="flex items-center justify-between mb-4">
