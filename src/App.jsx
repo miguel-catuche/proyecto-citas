@@ -104,7 +104,7 @@ const App = () => {
 
   return (
     
-    <Router basename="/proyecto-citas">
+    <Router basename="/">
       <Toaster position="top-center"/>
       {user ? (
         <AuthenticatedApp

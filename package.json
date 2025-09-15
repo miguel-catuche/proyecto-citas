@@ -13,6 +13,7 @@
   },
   "homepage": "https://miguel-catuche.github.io/proyecto-citas",
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/container-queries": "^0.1.1",
