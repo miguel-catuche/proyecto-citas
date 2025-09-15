@@ -3,24 +3,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { useCitas } from '@/hooks/useCitas';
 
 // Función para asignar colores a los estados de la cita
 const getEstadoColor = (estado) => {
     switch (estado) {
-        case 'programada':
-            return 'text-blue-500';
-        case 'completada':
-            return 'text-green-500';
         case 'cancelada':
-            return 'text-red-500';
-        case 'no vino':
-            return 'text-orange-500';
+            return 'bg-red-200';
+        case 'no-se-presentó':
+            return 'bg-orange-200';
+        case 'programada':
+            return 'bg-blue-200';
+        case 'completada':
+            return 'bg-green-200';
         default:
-            return 'text-gray-500';
+            return 'bg-gray-200';
     }
 };
+const estadoLabels = {
+    programada: "Programada",
+    completada: "Completada",
+    cancelada: "Cancelada",
+    "no-se-presentó": "No se presentó",
+};
 
-const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteClient }) => {
+const soloNumerosRegex = /^[0-9]*$/;
+
+const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -28,6 +37,8 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
     const [formData, setFormData] = useState({ id: '', nombre: '' });
+
+    const citas = useCitas();
 
     const openAddModal = () => {
         setFormData({ id: '', nombre: '' });
@@ -44,7 +55,7 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
         setSelectedClient(cliente);
         setShowDeleteModal(true);
     };
-    
+
     const openHistoryModal = (cliente) => {
         setSelectedClient(cliente);
         setShowHistoryModal(true);
@@ -52,9 +63,25 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
-        onAddClient(formData);
+
+        const id = formData.id?.trim();
+        const nombre = formData.nombre?.trim();
+
+        if (!id || !nombre) {
+            toast.error("Debes completar todos los campos");
+            return;
+        }
+
+        if (!/^\d+$/.test(id)) {
+            toast.error("El número de documento debe contener solo dígitos");
+            return;
+        }
+
+        onAddClient({ id, nombre });
         setShowAddModal(false);
+        setFormData({ id: "", nombre: "" });
     };
+
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
@@ -63,7 +90,7 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
     };
 
     const handleEditConfirm = () => {
-        onUpdateClient(formData);
+        onUpdateClient(formData.id, formData);
         setShowEditConfirmModal(false);
     };
 
@@ -72,12 +99,15 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
         setShowDeleteModal(false);
     };
 
-    const historialCitas = selectedClient ? citas.filter(cita => cita.clienteId === selectedClient.id) : [];
+    const historialCitas = Array.isArray(citas) && selectedClient?.id
+        ? citas.filter((cita) => String(cita.clienteId) === String(selectedClient.id))
+        : [];
+
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Administración de Clientes</h2>
-            
+
             <Card className="mb-6">
                 <CardContent className="p-4 flex justify-between items-center">
                     <h3 className="text-xl font-semibold text-gray-700">Lista de Clientes</h3>
@@ -127,11 +157,17 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                             <div>
                                 <label className="block text-sm text-gray-700">Número de documento</label>
                                 <Input
-                                    type="text"
+                                    inputMode="numeric"
                                     value={formData.id}
-                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (/^\d*$/.test(v)) {
+                                            setFormData({ ...formData, id: v });
+                                        }
+                                    }}
                                     required
                                 />
+
                             </div>
                             <div>
                                 <label className="block text-sm text-gray-700">Nombre completo</label>
@@ -163,9 +199,10 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                                 <label className="block text-sm text-gray-700">Número de documento</label>
                                 <Input
                                     type="text"
+                                    readOnly
                                     value={formData.id}
                                     onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                    required
+                                    className="bg-gray-100 cursor-not-allowed"
                                 />
                             </div>
                             <div>
@@ -230,16 +267,22 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
 
             {/* Modal para Ver Historial */}
             {showHistoryModal && selectedClient && (
+
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+
                     <div className="bg-white rounded-xl shadow-lg p-6 w-[600px]">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient.nombre}</h3>
+                            <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient?.nombre || "Cliente"}</h3>
                             <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-black text-white hover:bg-gray-800">Cerrar</Button>
                         </div>
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+
                             {historialCitas.length > 0 ? (
+
                                 historialCitas.map((cita, index) => (
+
                                     <Card key={index} className="p-4 bg-gray-50">
+
                                         <CardContent className="p-0">
                                             <div className="flex justify-between items-center">
                                                 <div className="text-sm text-gray-700">
@@ -247,8 +290,8 @@ const ClientesPage = ({ clientes, citas, onAddClient, onUpdateClient, onDeleteCl
                                                     <p><strong>Hora:</strong> {cita.hora}</p>
                                                     <p>
                                                         <strong>Estado:</strong>{" "}
-                                                        <span className={getEstadoColor(cita.estado)}>
-                                                            {cita.estado}
+                                                        <span className={`inline-block min-w-[15px] px-1 text-sm font-medium text-center rounded ${getEstadoColor(cita.estado)}`}>
+                                                            {estadoLabels[cita.estado] || cita.estado}
                                                         </span>
                                                     </p>
                                                 </div>

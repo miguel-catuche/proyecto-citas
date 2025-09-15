@@ -15,7 +15,7 @@ const getEstadoClasses = (estado) => {
   switch (estado) {
     case 'cancelada':
       return 'bg-red-200';
-    case 'no vino':
+    case 'no-se-presentó':
       return 'bg-orange-200';
     case 'programada':
       return 'bg-blue-200';
@@ -26,9 +26,21 @@ const getEstadoClasses = (estado) => {
   }
 };
 
+const estadoLabels = {
+  programada: "Programada",
+  completada: "Completada",
+  cancelada: "Cancelada",
+  "no-se-presentó": "No se presentó",
+};
+
+const allowedHours = ["07", "08", "09", "10", "14", "15", "16", "17"];
+const allowedMinutes = ["00", "15", "30", "45"];
+
+
 const CitasModal = ({
   selectedDay,
   selectedCell,
+  setSelectedDay,
   selectedDate,
   showModal,
   setShowModal,
@@ -40,6 +52,7 @@ const CitasModal = ({
   selectedAppointment,
   handleUpdate,
   handleDelete,
+  setSelectedCell,
 }) => {
   // SVG del ícono de ojo
   const EyeIcon = () => (
@@ -60,16 +73,34 @@ const CitasModal = ({
     </svg>
   );
 
+  //const [confirmDelete, setConfirmDelete] = useState(false);
+
   // Helper para obtener la fecha de un día de la semana
   const getDateForDay = useCallback((date, day) => {
-    const current = new Date(date);
-    const monday = new Date(current.setDate(current.getDate() - current.getDay() + 1));
-    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-    const dayIndex = days.indexOf(day);
-    const targetDate = new Date(monday);
-    targetDate.setDate(monday.getDate() + dayIndex);
-    return targetDate.toISOString().split("T")[0];
-  }, []);
+  const inputDate = new Date(date);
+  const dayOfWeek = inputDate.getDay(); // 0 (domingo) a 6 (sábado)
+  const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const monday = new Date(inputDate);
+  monday.setDate(inputDate.getDate() + offsetToMonday);
+
+  const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  const dayIndex = days.indexOf(day);
+
+  const targetDate = new Date(monday);
+  targetDate.setDate(monday.getDate() + dayIndex);
+
+  const formatLocalDate = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  return formatLocalDate(targetDate);
+}, []);
+
+
 
   const hours = [
     "07:00:00",
@@ -83,6 +114,7 @@ const CitasModal = ({
   ];
 
   return (
+    
     <>
       {/* Modal de citas por hora */}
       {showModal && selectedCell && !selectedDay && (
@@ -94,11 +126,11 @@ const CitasModal = ({
             {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.length === 0 ? (
               <p className="text-gray-500">No hay citas</p>
             ) : (
-              <ul className="text-sm space-y-2 flex flex-col items-center">
+              <ul className="text-sm space-y-2 flex flex-col items-start w-full">
                 {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.map((c) => (
-                  <li key={c.id} className={`text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                  <li key={c.id} className={`w-full max-w-[22rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
                     <div>
-                      {c.paciente} (Doc: {c.id}) - Hora: {c.hora.slice(0, 5)} - Estado: {c.estado}
+                      {c.paciente} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
                     </div>
                     <div className="flex items-center space-x-2">
                       <span onClick={() => {
@@ -147,11 +179,11 @@ const CitasModal = ({
                         {citasHora.length === 0 ? (
                           <p className="text-gray-400 text-sm">Sin citas</p>
                         ) : (
-                          <ul className="text-sm space-y-2 flex flex-col items-center">
+                          <ul className="text-sm space-y-2 flex flex-col items-start">
                             {citasHora.map((c) => (
-                              <li key={c.id} className={`text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                              <li key={c.id} className={`w-full max-w-[24rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
                                 <div>
-                                  {c.paciente} (Doc: {c.id}) - Hora: {c.hora.slice(0, 5)} - Estado: {c.estado}
+                                  {c.paciente} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <span onClick={() => {
@@ -209,7 +241,7 @@ const CitasModal = ({
                 <label className="block text-sm text-gray-700">Número de documento</label>
                 <Input
                   type="text"
-                  value={selectedAppointment.id}
+                  value={selectedAppointment.clienteId}
                   readOnly
                   className="bg-gray-100 cursor-not-allowed"
                 />
@@ -223,14 +255,50 @@ const CitasModal = ({
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm text-gray-700">Hora de la cita</label>
-                <Input
-                  type="time"
-                  value={selectedAppointment.hora.slice(0, 5)}
-                  onChange={(e) => setSelectedAppointment({ ...selectedAppointment, hora: `${e.target.value}:00` })}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Select de hora */}
+                <div>
+                  <label className="block text-sm text-gray-700">Hora</label>
+                  <select
+                    value={selectedAppointment.hora.split(":")[0]}
+                    onChange={(e) =>
+                      setSelectedAppointment((prev) => ({
+                        ...prev,
+                        hora: `${e.target.value}:${prev.hora.split(":")[1] || "00"}:00`,
+                      }))
+                    }
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                  >
+                    <option value="">--</option>
+                    {allowedHours.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700">Minutos</label>
+                  <select
+                    value={selectedAppointment.hora.split(":")[1]}
+                    onChange={(e) =>
+                      setSelectedAppointment((prev) => ({
+                        ...prev,
+                        hora: `${prev.hora.split(":")[0] || "07"}:${e.target.value}:00`,
+                      }))
+                    }
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                  >
+                    <option value="">--</option>
+                    {allowedMinutes.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-gray-700">Estado</label>
@@ -244,10 +312,10 @@ const CitasModal = ({
                   <SelectContent>
                     <SelectItem value="programada">Programada</SelectItem>
                     <SelectItem value="completada">Completada</SelectItem>
-                    <SelectItem value="no vino">No vino</SelectItem>
-                    <SelectItem value="pospuesta">Pospuesta</SelectItem>
+                    <SelectItem value="no-se-presentó">No se presentó</SelectItem>
                     <SelectItem value="cancelada">Cancelada</SelectItem>
                   </SelectContent>
+
                 </Select>
               </div>
               <div className="flex justify-between items-center mt-4">

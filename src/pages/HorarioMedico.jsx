@@ -1,9 +1,23 @@
 // src/components/HorarioMedico.jsx
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CitasModal from "../components/CitasModal";
+import toast from 'react-hot-toast';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  serverTimestamp
+} from "firebase/firestore";
+
+import { db } from "@/firebase";
 
 const hours = [
   "07:00:00",
@@ -15,33 +29,49 @@ const hours = [
   "16:00:00",
   "17:00:00",
 ];
-
 const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+const allowedHours = ["07", "08", "09", "10", "14", "15", "16", "17"];
+const allowedMinutes = ["00", "15", "30", "45"];
 
-// Base de datos de clientes (simulada)
-const clientes = [
-  { id: "1020304050", nombre: "Ana López" },
-  { id: "1030405060", nombre: "Carlos Ruiz" },
-  { id: "1040506070", nombre: "María Torres" },
-  { id: "1050607080", nombre: "Luis Gómez" },
-  { id: "1060708090", nombre: "Sofía Pérez" },
-  { id: "1070809000", nombre: "Diego Vargas" },
-  { id: "1080900010", nombre: "Elena Díaz" },
-  { id: "1090001020", nombre: "Javier Castro" },
-  { id: "1100102030", nombre: "Gabriela Rios" },
-  { id: "9876543210", nombre: "Laura Mendoza" },
-  { id: "5432109876", nombre: "Roberto Fernández" },
-];
 
 // Helper function para obtener la fecha de un día de la semana
 const getDateForDay = (date, day) => {
-  const current = new Date(date);
-  const monday = new Date(current.setDate(current.getDate() - current.getDay() + 1));
-  const dayIndex = days.indexOf(day);
-  const targetDate = new Date(monday);
-  targetDate.setDate(monday.getDate() + dayIndex);
-  return targetDate.toISOString().split("T")[0];
+  const daysNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  const idx = daysNames.indexOf(day);
+  const { monday } = getWeekRange(date);
+
+  const target = new Date(monday);
+  target.setDate(monday.getDate() + idx);
+
+  return formatLocalDate(target);
 };
+
+const formatLocalDate = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const getWeekRange = (date) => {
+  const base = new Date(date);
+  const dow = base.getDay();              // 0=domingo
+  const offsetToMonday = dow === 0 ? -6 : 1 - dow;
+
+  const monday = new Date(base);
+  monday.setDate(base.getDate() + offsetToMonday);
+
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+
+  return {
+    monday,
+    friday,
+    startDateStr: formatLocalDate(monday),
+    endDateStr: formatLocalDate(friday),
+  };
+};
+
 
 // Hook de React para debouncing
 const useDebounce = (callback, delay) => {
@@ -57,32 +87,64 @@ const useDebounce = (callback, delay) => {
   }, [callback, delay]);
 };
 
+const getInitialMonday = () => {
+  const today = new Date();
+  const dow = today.getDay();
+  const offset = dow === 0 ? -6 : 1 - dow;
+  today.setDate(today.getDate() + offset);
+  return today;
+};
+
 export default function HorarioMedico() {
   const [mode, setMode] = useState("view");
-  const [citas, setCitas] = useState([
-    { id: "1020304050", paciente: "Ana López", fecha: "2025-09-11", hora: "07:00:00", estado: "programada" },
-    { id: "1030405060", paciente: "Carlos Ruiz", fecha: "2025-09-10", hora: "10:00:00", estado: "programada" },
-    { id: "1040506070", paciente: "María Torres", fecha: "2025-09-09", hora: "14:00:00", estado: "cancelada" },
-    { id: "1050607080", paciente: "Luis Gómez", fecha: "2025-09-09", hora: "14:00:00", estado: "programada" },
-    { id: "1060708090", paciente: "Sofía Pérez", fecha: "2025-09-11", hora: "09:15:00", estado: "programada" },
-    { id: "1070809000", paciente: "Diego Vargas", fecha: "2025-09-08", hora: "08:30:00", estado: "programada" },
-    { id: "1080900010", paciente: "Elena Díaz", fecha: "2025-09-10", hora: "15:45:00", estado: "programada" },
-    { id: "1090001020", paciente: "Javier Castro", fecha: "2025-09-12", hora: "16:20:00", estado: "programada" },
-    { id: "1100102030", paciente: "Gabriela Rios", fecha: "2025-09-12", hora: "17:00:00", estado: "programada" },
-  ]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [clientes, setClientes] = useState([]);
+  const [citas, setCitas] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(getInitialMonday());
   const [selectedCell, setSelectedCell] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
-
   const [formData, setFormData] = useState({ documento: "", paciente: "", hora: "" });
+
+
+
+  useEffect(() => {
+    // 🔄 Escuchar clientes en tiempo real
+    const unsubscribeClientes = onSnapshot(collection(db, "clientes"), (snapshot) => {
+      const clientesData = snapshot.docs.map(doc => doc.data());
+      setClientes(clientesData);
+    });
+
+    return () => unsubscribeClientes();
+  }, []);
+
+  useEffect(() => {
+  }, [citas]);
+
+  useEffect(() => {
+    const { startDateStr, endDateStr } = getWeekRange(selectedDate);
+
+    const citasQuery = query(
+      collection(db, "citas"),
+      where("fecha", ">=", startDateStr),
+      where("fecha", "<=", endDateStr)
+    );
+
+    const unsubscribe = onSnapshot(citasQuery, (snapshot) => {
+      const citasData = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        docId: doc.id,
+      }));
+      setCitas(citasData);
+    });
+
+    return () => unsubscribe();
+  }, [selectedDate]);
 
   const citasByDate = useMemo(() => {
     return citas.reduce((acc, cita) => {
@@ -116,51 +178,83 @@ export default function HorarioMedico() {
   }, []);
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       const { documento, paciente, hora } = formData;
+
       if (!documento || !paciente || !hora) return;
+      if (!selectedClient?.id) {
+        toast.error("Debes seleccionar un cliente antes de guardar la cita");
+        return;
+      }
 
       const nuevaCita = {
-        id: documento,
+        clienteId: selectedClient.id,
         paciente,
+        documento,
         fecha: getDateForDay(selectedDate, selectedCell.day),
         hora: `${hora}:00`,
         estado: "programada",
+        creadoEn: serverTimestamp(),
+        actualizadoEn: serverTimestamp(),
       };
 
-      setCitas((prevCitas) => [...prevCitas, nuevaCita]);
-      setShowForm(false);
+      try {
+        await addDoc(collection(db, "citas"), nuevaCita);
+        toast.success(`Cita para ${paciente} añadida a las ${hora}`);
+        setShowForm(false);
+        setSelectedClient(null);
+        setFormData({ documento: "", paciente: "", hora: "" });
+      } catch (error) {
+        console.error("Error al guardar la cita:", error);
+        toast.error("Hubo un problema al guardar la cita");
+      }
     },
-    [formData, selectedCell, selectedDate]
+    [formData, selectedCell, selectedDate, selectedClient]
   );
 
-  const handleUpdate = useCallback((e) => {
-    e.preventDefault();
-    const { paciente, id, fecha, hora, estado } = selectedAppointment;
+  const handleUpdate = useCallback(async (e) => {
+  e.preventDefault();
+  if (!selectedAppointment?.docId) return;
 
-    setCitas(prevCitas => prevCitas.map(cita =>
-      cita.id === id && cita.fecha === selectedAppointment.fecha ? { ...cita, paciente, id, fecha, hora, estado } : cita
-    ));
+  const { paciente, fecha, hora, estado, clienteId } = selectedAppointment;
+
+  try {
+    await updateDoc(doc(db, "citas", selectedAppointment.docId), {
+      paciente,
+      fecha,
+      hora,
+      estado,
+      clienteId,
+      actualizadoEn: serverTimestamp(),
+    });
 
     setShowEditModal(false);
     setSelectedAppointment(null);
-  }, [selectedAppointment]);
+  } catch (error) {
+    console.error("Error al actualizar la cita:", error);
+    toast.error("Hubo un problema al actualizar la cita");
+  }
+}, [selectedAppointment]);
 
-  const handleDelete = useCallback(() => {
-    if (!selectedAppointment) return;
-    setCitas(prevCitas => prevCitas.filter(cita => cita.id !== selectedAppointment.id || cita.fecha !== selectedAppointment.fecha || cita.hora !== selectedAppointment.hora));
-    setShowEditModal(false);
-    setSelectedAppointment(null);
+
+  const handleDelete = useCallback(async () => {
+    if (!selectedAppointment?.docId) return;
+
+    try {
+      await deleteDoc(doc(db, "citas", selectedAppointment.docId));
+      setShowEditModal(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error("Error al eliminar la cita:", error);
+    }
   }, [selectedAppointment]);
 
   const semanaActual = useMemo(() => {
-    const start = new Date(selectedDate);
-    start.setDate(start.getDate() - start.getDay() + 1);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 4);
-    return `${start.toLocaleDateString()} al ${end.toLocaleDateString()}`;
+    const { monday, friday } = getWeekRange(selectedDate);
+    return `${monday.toLocaleDateString()} al ${friday.toLocaleDateString()}`;
   }, [selectedDate]);
+
 
   const cambiarSemana = useCallback((offset) => {
     setSelectedDate((prevDate) => {
@@ -181,7 +275,7 @@ export default function HorarioMedico() {
     } else {
       setSearchResults([]);
     }
-  }, []);
+  }, [clientes]);
 
   const debouncedSearch = useDebounce(searchClients, 300);
 
@@ -196,13 +290,30 @@ export default function HorarioMedico() {
       ...formData,
       documento: client.id,
       paciente: client.nombre,
+      clienteId: client.id,
     });
+
     setSearchTerm('');
     setSearchResults([]);
   };
 
+  const validTimes = useMemo(() => {
+    const allowedHours = ["07", "08", "09", "10", "14", "15", "16", "17"];
+    const minutes = ["00", "15", "30", "45"];
+    const result = [];
+
+    allowedHours.forEach((hour) => {
+      minutes.forEach((min) => {
+        result.push(`${hour}:${min}`);
+      });
+    });
+
+    return result; // Ej: ["07:00", "07:15", ..., "17:45"]
+  }, []);
+
+
   return (
-    
+
     <div className="p-6">
       {/* Header y botones de navegación */}
       <div className="flex items-center justify-between mb-4">
@@ -262,10 +373,10 @@ export default function HorarioMedico() {
                 <Card
                   key={day + hour}
                   className={`cursor-pointer h-20 flex items-center justify-center text-sm transition-colors rounded-lg ${mode === "edit"
-                      ? "bg-yellow-300 hover:bg-yellow-500"
-                      : tieneCitas
-                        ? "bg-green-400 hover:bg-green-500"
-                        : "bg-blue-50 hover:bg-blue-100"
+                    ? "bg-yellow-300 hover:bg-yellow-500"
+                    : tieneCitas
+                      ? "bg-green-400 hover:bg-green-500"
+                      : "bg-blue-50 hover:bg-blue-100"
                     }`}
                   onClick={() => {
                     setSelectedCell({ day, hour });
@@ -337,7 +448,7 @@ export default function HorarioMedico() {
                   <label className="block text-sm text-gray-700">Buscar paciente</label>
                   <Input
                     type="text"
-                    placeholder="Buscar por nombre o documento..."
+                    placeholder="Buscar por nombre"
                     value={searchTerm}
                     onChange={handleSearchChange}
                   />
@@ -358,15 +469,54 @@ export default function HorarioMedico() {
               )}
               {selectedClient && (
                 <>
-                  <div>
-                    <label className="block text-sm text-gray-700">Hora de la cita</label>
-                    <Input
-                      type="time"
-                      value={formData.hora}
-                      onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
-                      required
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Select de hora */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Hora</label>
+                      <select
+                        value={formData.hora.split(":")[0] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            hora: `${e.target.value}:${prev.hora.split(":")[1] || "00"}`,
+                          }))
+                        }
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                      >
+                        <option value="">--</option>
+                        {allowedHours.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Minutos</label>
+                      <select
+                        value={formData.hora.split(":")[1] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            hora: `${prev.hora.split(":")[0] || "07"}:${e.target.value}`,
+                          }))
+                        }
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                      >
+                        <option value="">--</option>
+                        {allowedMinutes.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
+
                   <div className="flex justify-end space-x-2">
                     <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowForm(false)}>
                       Cancelar
@@ -395,6 +545,8 @@ export default function HorarioMedico() {
         selectedAppointment={selectedAppointment}
         handleUpdate={handleUpdate}
         handleDelete={handleDelete}
+        setSelectedCell={setSelectedCell}
+        setSelectedDay={setSelectedDay}
       />
     </div>
   );

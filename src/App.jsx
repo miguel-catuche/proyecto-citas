@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { auth, db } from "./firebase";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc ,onSnapshot, serverTimestamp } from "firebase/firestore";
+import { Toaster } from 'react-hot-toast';
 import Login from "./pages/Login";
 import AuthenticatedApp from "./AuthenticatedApp";
 
@@ -40,13 +41,26 @@ const App = () => {
   }, [user]);
 
   const handleAddClient = async (cliente) => {
-    await addDoc(collection(db, "clientes"), {
+  try {
+    if (!cliente.id || cliente.id.trim() === "") {
+      throw new Error("ID de cliente inválido");
+    }
+
+    const ref = doc(db, "clientes", cliente.id);
+    await setDoc(ref, {
       nombre: cliente.nombre,
-      documento: cliente.documento,
+      id: cliente.id,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-  };
+
+    console.log("Cliente guardado con ID:", cliente.id);
+  } catch (error) {
+    console.error("Error en handleAddClient:", error.message);
+  }
+};
+
+
 
   const handleUpdateClient = async (id, updatedData) => {
     const ref = doc(db, "clientes", id);
@@ -89,7 +103,9 @@ const App = () => {
   if (loading) return <p className="text-center mt-10">Cargando...</p>;
 
   return (
-    <Router>
+    
+    <Router basename="/proyecto-citas">
+      <Toaster position="top-center"/>
       {user ? (
         <AuthenticatedApp
           clientes={clientes}
