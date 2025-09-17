@@ -77,28 +77,28 @@ const CitasModal = ({
 
   // Helper para obtener la fecha de un día de la semana
   const getDateForDay = useCallback((date, day) => {
-  const inputDate = new Date(date);
-  const dayOfWeek = inputDate.getDay(); // 0 (domingo) a 6 (sábado)
-  const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const inputDate = new Date(date);
+    const dayOfWeek = inputDate.getDay(); // 0 (domingo) a 6 (sábado)
+    const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
-  const monday = new Date(inputDate);
-  monday.setDate(inputDate.getDate() + offsetToMonday);
+    const monday = new Date(inputDate);
+    monday.setDate(inputDate.getDate() + offsetToMonday);
 
-  const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-  const dayIndex = days.indexOf(day);
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const dayIndex = days.indexOf(day);
 
-  const targetDate = new Date(monday);
-  targetDate.setDate(monday.getDate() + dayIndex);
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + dayIndex);
 
-  const formatLocalDate = (d) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
+    const formatLocalDate = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
 
-  return formatLocalDate(targetDate);
-}, []);
+    return formatLocalDate(targetDate);
+  }, []);
 
 
 
@@ -112,9 +112,14 @@ const CitasModal = ({
     "16:00:00",
     "17:00:00",
   ];
+  const clave =
+    selectedCell?.day && selectedCell?.hour
+      ? `${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`
+      : null;
+  const citas = citasByDate[clave] || [];
 
   return (
-    
+
     <>
       {/* Modal de citas por hora */}
       {showModal && selectedCell && !selectedDay && (
@@ -123,7 +128,7 @@ const CitasModal = ({
             <h3 className="font-bold mb-2 text-gray-800">
               Citas en {selectedCell.day} a las {selectedCell.hour.slice(0, 5)}
             </h3>
-            {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.length === 0 ? (
+            {citas.length === 0 ? (
               <p className="text-gray-500">No hay citas</p>
             ) : (
               <ul className="text-sm space-y-2 flex flex-col items-start w-full">

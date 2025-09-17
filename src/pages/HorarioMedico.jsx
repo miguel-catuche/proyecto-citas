@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CitasModal from "../components/CitasModal";
 import toast from 'react-hot-toast';
+import Icon from "@/components/Icons";
+
 import {
   collection,
   query,
@@ -112,7 +114,6 @@ export default function HorarioMedico() {
   const [formData, setFormData] = useState({ documento: "", paciente: "", hora: "" });
 
 
-
   useEffect(() => {
     // 🔄 Escuchar clientes en tiempo real
     const unsubscribeClientes = onSnapshot(collection(db, "clientes"), (snapshot) => {
@@ -214,28 +215,28 @@ export default function HorarioMedico() {
   );
 
   const handleUpdate = useCallback(async (e) => {
-  e.preventDefault();
-  if (!selectedAppointment?.docId) return;
+    e.preventDefault();
+    if (!selectedAppointment?.docId) return;
 
-  const { paciente, fecha, hora, estado, clienteId } = selectedAppointment;
+    const { paciente, fecha, hora, estado, clienteId } = selectedAppointment;
 
-  try {
-    await updateDoc(doc(db, "citas", selectedAppointment.docId), {
-      paciente,
-      fecha,
-      hora,
-      estado,
-      clienteId,
-      actualizadoEn: serverTimestamp(),
-    });
+    try {
+      await updateDoc(doc(db, "citas", selectedAppointment.docId), {
+        paciente,
+        fecha,
+        hora,
+        estado,
+        clienteId,
+        actualizadoEn: serverTimestamp(),
+      });
 
-    setShowEditModal(false);
-    setSelectedAppointment(null);
-  } catch (error) {
-    console.error("Error al actualizar la cita:", error);
-    toast.error("Hubo un problema al actualizar la cita");
-  }
-}, [selectedAppointment]);
+      setShowEditModal(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error("Error al actualizar la cita:", error);
+      toast.error("Hubo un problema al actualizar la cita");
+    }
+  }, [selectedAppointment]);
 
 
   const handleDelete = useCallback(async () => {
@@ -314,40 +315,49 @@ export default function HorarioMedico() {
 
   return (
 
-    <div className="p-6">
-      {/* Header y botones de navegación */}
-      <div className="flex items-center justify-between mb-4">
-        <Button
-          className="cursor-pointer bg-gradient-to-r from-purple-700 via-purple-700 to-blue-700 hover:from-purple-500 hover:via-purple-500 hover:to-blue-500 transition"
-          onClick={() => cambiarSemana(-1)}
-        >
-          ← Semana anterior
-        </Button>
-
-        <div className="flex flex-col items-center justify-center mb-4 gap-y-4 bg-white rounded shadow-md w-100 h-30">
-          <h2 className={`text-xl font-bold text-center ${mode === "view" ? "text-blue-600" : "text-orange-600"}`}>
+    <div className="p-6 w-full">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 w-full mb-6">
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-bold text-black">
             Semana de {semanaActual}
           </h2>
-          <Button className="cursor-pointer" onClick={() => setMode(mode === "view" ? "edit" : "view")}>
+          <p className="text-sm text-gray-500 mt-1">
+            Gestión de agenda
+          </p>
+        </div>
+        <div className="flex justify-between items-center">
+          <Button
+            className="cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
+            onClick={() => cambiarSemana(-1)}
+          >
+            ← Semana anterior
+          </Button>
+
+          <Button
+            className="cursor-pointer bg-gradient-to-r w-35 from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-alln"
+            onClick={() => setMode(mode === "view" ? "edit" : "view")}>
+              <Icon name={"plus"}/>
             {mode === "view" ? "Añadir Agenda" : "Ver Agenda"}
           </Button>
-        </div>
 
-        <Button
-          className="cursor-pointer bg-gradient-to-r from-purple-700 via-purple-700 to-blue-700 hover:from-purple-500 hover:via-purple-500 hover:to-blue-500 transition"
-          onClick={() => cambiarSemana(1)}
-        >
-          Semana siguiente →
-        </Button>
+          <Button
+            className="cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
+            onClick={() => cambiarSemana(1)}
+          >
+            Semana siguiente →
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-2">
-        <div></div>
+      <div className="grid grid-cols-6 divide-x divide-gray-200 bg-white rounded-xl shadow-lg border border-gray-300">
+        <div className="text-center py-2 bg-gray-100 text-gray-700 rounded flex flex-row items-center gap-2 justify-center">
+          <Icon className="text-gray-500" name={"clock"}/>Horario
+        </div>
 
         {days.map((day) => (
           <div
             key={day}
-            className="font-bold text-white shadow-md py-2 rounded text-center cursor-pointer bg-gradient-to-r from-blue-800 via-blue-600/85 to-blue-500 hover:from-blue-900 hover:to-blue-900 transition"
+            className="font-bold text-black bg-blue-100 hover:bg-blue-200 py-2 text-center cursor-pointer "
             onClick={() => {
               setSelectedDay(day);
               setSelectedCell(null);
@@ -360,7 +370,7 @@ export default function HorarioMedico() {
 
         {hours.map((hour) => (
           <React.Fragment key={hour}>
-            <div className="font-bold text-white shadow-md py-2 flex items-center justify-center rounded bg-gradient-to-r from-blue-800 via-blue-600/85 to-blue-500">
+            <div className="border-b border-white font-bold text-white flex items-center justify-center bg-gradient-to-r from-blue-500 to-teal-500 text-white border-r border-gray-200">
               {hour.slice(0, 5)}
             </div>
 
@@ -390,7 +400,8 @@ export default function HorarioMedico() {
                 >
                   <CardContent className="text-center">
                     {mode === "edit" ? (
-                      <p className="text-gray-800 font-medium">Añadir Nuevo</p>
+                      <p className="text-gray-800 font-medium flex flex-col items-center">
+                        <Icon name={"plus"} size={20}/>Añadir Nuevo</p>
                     ) : tieneCitas ? (
                       <p className="font-semibold text-gray-800">{citasEnCelda.length} cita(s)</p>
                     ) : (
@@ -448,7 +459,7 @@ export default function HorarioMedico() {
                   <label className="block text-sm text-gray-700">Buscar paciente</label>
                   <Input
                     type="text"
-                    placeholder="Buscar por nombre"
+                    placeholder="Buscar por nombre o documento..."
                     value={searchTerm}
                     onChange={handleSearchChange}
                   />
