@@ -106,18 +106,20 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
 
 
     return (
-        <div className="p-6 mx-auto">
+        <div className="p-2 mx-auto">
 
             <Card className="mb-6">
-                <CardContent className="p-4 flex justify-between items-center">
+                <CardContent className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h3 className="text-xl font-semibold text-gray-700">Administración de Clientes</h3>
-                        <p class="text-gray-500">Gestiona la información de todos tus pacientes</p>
+                        <p className="text-gray-500">Gestiona la información de todos tus pacientes</p>
                     </div>
+                    <div className="flex justify-center md:justify-end">                        
                     <Button className={"cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"}
                         onClick={openAddModal}>
                         <Icon name={"plus"} />Añadir Nuevo Cliente
                     </Button>
+                    </div>
                 </CardContent>
             </Card>
 

@@ -2,53 +2,100 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import Icon from "./Icons";
+import { useState } from "react";
 const Header = ({ onLogout }) => {
   const navigate = useNavigate();
 
   const activeColorClasses = "bg-white text-blue-600 hover:bg-white ronded-lg shadow-sm";
   const inactiveColorClasses = "text-gray-600 bg-transparent hover:bg-transparent border-none outline-none shadow-none";
+  const [menuOpen, setMenuOpen] = useState(false);
 
 
   return (
-    <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-      <h1 className="text-2xl font-bold text-gray-800">Panel de Administración</h1>
+    <>
+      <header className="relative bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <h1 className="text-2xl font-bold text-gray-800">Panel de Administración</h1>
 
-      <nav className="flex items-center gap-4">
-        <div className="flex items-center bg-gray-100 rounded-xl p-2 ">
-          <NavLink to="/horario">
-            {({ isActive }) => (
-              <Button
-                className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}
-              >
-                <Icon name={"calendar"}/>Horario
-              </Button>
-            )}
-          </NavLink>
+        <nav className="flex items-center gap-4">
+          <button
+            className="md:hidden absolute top-4 right-6 z-50 text-gray-700 cursor-pointer"
+            onClick={() => setMenuOpen(true)}
+          >
+            <Icon name="menu" size={32} />
+          </button>
 
-          <NavLink to="/clientes">
-            {({ isActive }) => (
-              <Button
-                className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}
-              >
-               <Icon name={"people"}/>Clientes
-              </Button>
-            )}
-          </NavLink>
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center bg-gray-100 rounded-xl p-2">
+              <NavLink to="/horario">
+                {({ isActive }) => (
+                  <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                    <Icon name="calendar" />Horario
+                  </Button>
+                )}
+              </NavLink>
+
+              <NavLink to="/clientes">
+                {({ isActive }) => (
+                  <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                    <Icon name="people" />Clientes
+                  </Button>
+                )}
+              </NavLink>
+            </div>
+
+            <Button
+              variant="ghost"
+              className="cursor-pointer text-white bg-red-500 hover:bg-red-600 hover:text-white"
+              onClick={() => {
+                onLogout?.();
+                navigate("/login");
+              }}
+            >
+              Salir
+            </Button>
           </div>
-        <Button
-          variant="ghost"
-          className="text-white bg-red-500 hover:bg-red-600 cursor-pointer hover:text-white"
-          onClick={() => {
-            onLogout?.();
-            navigate("/login");
-          }}
-        >
-          Salir
-        </Button>
-      </nav>
-    </header>
+        </nav>
+      </header>
+      {menuOpen && (
+        <div className="absolute top-0 right-0 h-full w-64 bg-gray-100 pt-12 shadow-lg z-50 p-6 flex flex-col gap-4">
+          <button
+            className="cursor-pointer absolute top-4 right-6 text-gray-700"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name="close" size={32} />
+          </button>
 
-  );
+          <NavLink to="/horario" onClick={() => setMenuOpen(false)}>
+            {({ isActive }) => (
+              <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                <Icon name="calendar" />Horario
+              </Button>
+            )}
+          </NavLink>
+
+          <NavLink to="/clientes" onClick={() => setMenuOpen(false)}>
+            {({ isActive }) => (
+              <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                <Icon name="people" />Clientes
+              </Button>
+            )}
+          </NavLink>
+
+          <Button
+            variant="ghost"
+            className="cursor-pointer text-white bg-red-500 hover:bg-red-600 hover:text-white"
+            onClick={() => {
+              setMenuOpen(false);
+              onLogout?.();
+              navigate("/login");
+            }}
+          >
+            Salir
+          </Button>
+        </div>
+      )}
+    </>);
+
 };
 
 export default Header;

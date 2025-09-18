@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import CitasModal from "../components/CitasModal";
 import toast from 'react-hot-toast';
 import Icon from "@/components/Icons";
+import { ScrollSync, ScrollSyncPane } from "react-scroll-sync";
 
 import {
   collection,
@@ -112,7 +113,36 @@ export default function HorarioMedico() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [formData, setFormData] = useState({ documento: "", paciente: "", hora: "" });
+  const headerScrollRef = useRef(null);
+  const gridScrollRef = useRef(null);
 
+  useEffect(() => {
+    const header = headerScrollRef.current;
+    const grid = gridScrollRef.current;
+    if (!header || !grid) return;
+
+    let syncing = false;
+
+    const syncScroll = (source, target) => {
+      if (syncing) return;
+      syncing = true;
+      target.scrollLeft = source.scrollLeft;
+      requestAnimationFrame(() => {
+        syncing = false;
+      });
+    };
+
+    const onGridScroll = () => syncScroll(grid, header);
+    const onHeaderScroll = () => syncScroll(header, grid);
+
+    grid.addEventListener("scroll", onGridScroll, { passive: true });
+    header.addEventListener("scroll", onHeaderScroll, { passive: true });
+
+    return () => {
+      grid.removeEventListener("scroll", onGridScroll);
+      header.removeEventListener("scroll", onHeaderScroll);
+    };
+  }, []);
 
   useEffect(() => {
     // 🔄 Escuchar clientes en tiempo real
@@ -315,7 +345,7 @@ export default function HorarioMedico() {
 
   return (
 
-    <div className="p-6 w-full">
+    <div className="p-2 w-full">
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 w-full mb-6">
         <div className="text-center mb-4">
           <h2 className="text-xl font-bold text-black">
@@ -325,103 +355,134 @@ export default function HorarioMedico() {
             Gestión de agenda
           </p>
         </div>
-        <div className="flex justify-between items-center">
-          <Button
-            className="cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
-            onClick={() => cambiarSemana(-1)}
-          >
-            ← Semana anterior
-          </Button>
-
-          <Button
-            className="cursor-pointer bg-gradient-to-r w-35 from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-alln"
-            onClick={() => setMode(mode === "view" ? "edit" : "view")}>
-              <Icon name={"plus"}/>
-            {mode === "view" ? "Añadir Agenda" : "Ver Agenda"}
-          </Button>
-
-          <Button
-            className="cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
-            onClick={() => cambiarSemana(1)}
-          >
-            Semana siguiente →
-          </Button>
+        <div className="flex flex-col gap-4 md:grid md:grid-cols-3 md:gap-4 md:items-center">
+          <div className="md:flex md:justify-start">
+            <Button
+              className="w-full md:w-auto cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
+              onClick={() => cambiarSemana(-1)}
+            >
+              ← Semana anterior
+            </Button>
+          </div>
+          <div className="md:flex md:justify-center">
+            <Button
+              className="w-full md:w-40 cursor-pointer bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+              onClick={() => setMode(mode === "view" ? "edit" : "view")}
+            >
+              {mode === "view" ? (
+                <>
+                  <Icon name="plus"/>
+                  Añadir Agenda
+                </>
+              ) : (
+                <>
+                  <Icon name="calendar"/>
+                  Ver Agenda
+                </>
+              )}
+            </Button>
+          </div>
+          <div className="md:flex md:justify-end">
+            <Button
+              className="w-full md:w-auto cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-200 font-medium"
+              onClick={() => cambiarSemana(1)}
+            >
+              Semana siguiente →
+            </Button>
+          </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-6 divide-x divide-gray-200 bg-white rounded-xl shadow-lg border border-gray-300">
-        <div className="text-center py-2 bg-gray-100 text-gray-700 rounded flex flex-row items-center gap-2 justify-center">
-          <Icon className="text-gray-500" name={"clock"}/>Horario
-        </div>
-
-        {days.map((day) => (
-          <div
-            key={day}
-            className="font-bold text-black bg-blue-100 hover:bg-blue-200 py-2 text-center cursor-pointer "
-            onClick={() => {
-              setSelectedDay(day);
-              setSelectedCell(null);
-              setShowModal(true);
-            }}
-          >
-            {day}
-          </div>
-        ))}
-
-        {hours.map((hour) => (
-          <React.Fragment key={hour}>
-            <div className="border-b border-white font-bold text-white flex items-center justify-center bg-gradient-to-r from-blue-500 to-teal-500 text-white border-r border-gray-200">
-              {hour.slice(0, 5)}
+      <div className="rounded-xl shadow-lg border border-gray-300 bg-white md:overflow-hidden overflow-visible">
+        <div ref={headerScrollRef} className="overflow-x-auto no-scrollbar">
+          <div className="grid grid-cols-[100px_repeat(5,minmax(0,1fr))] min-w-[700px] md:grid-cols-[160px_repeat(5,minmax(0,1fr))] bg-gray-100 border-b border-gray-300">
+            <div className="sticky left-0 z-10 bg-gray-100 w-[100px] md:w-[160px] flex items-center justify-center 
+            py-2 text-gray-600 text-sm font-medium">
+              <Icon className="text-gray-500 mr-1" name={"clock"} />
+              Horario
             </div>
 
-            {days.map((day) => {
-              const fecha = getDateForDay(selectedDate, day);
-              const citasEnCelda = citasByDate[`${fecha}-${hour.slice(0, 2)}`] || [];
-              const tieneCitas = citasEnCelda.length > 0;
-
-              return (
-                <Card
-                  key={day + hour}
-                  className={`cursor-pointer h-20 flex items-center justify-center text-sm transition-colors rounded-lg ${mode === "edit"
-                    ? "bg-yellow-300 hover:bg-yellow-500"
-                    : tieneCitas
-                      ? "bg-green-400 hover:bg-green-500"
-                      : "bg-blue-50 hover:bg-blue-100"
-                    }`}
-                  onClick={() => {
-                    setSelectedCell({ day, hour });
-                    setSelectedDay(null);
-                    if (mode === "edit") {
-                      handleAddCita(day, hour);
-                    } else {
-                      setShowModal(true);
-                    }
-                  }}
-                >
-                  <CardContent className="text-center">
-                    {mode === "edit" ? (
-                      <p className="text-gray-800 font-medium flex flex-col items-center">
-                        <Icon name={"plus"} size={20}/>Añadir Nuevo</p>
-                    ) : tieneCitas ? (
-                      <p className="font-semibold text-gray-800">{citasEnCelda.length} cita(s)</p>
-                    ) : (
-                      <p className="text-gray-500">Sin citas</p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {mode === "edit" && (
-        <div className="fixed bottom-6 right-6">
-          <Button onClick={() => setMode("view")} className="bg-green-600 text-white shadow-lg cursor-pointer">
-            Guardar cambios
-          </Button>
+            {days.map((day) => (
+              <div
+                key={day}
+                className="font-bold text-black bg-blue-100 hover:bg-blue-200 py-2 text-center cursor-pointer"
+                onClick={() => {
+                  setSelectedDay(day);
+                  setSelectedCell(null);
+                  setShowModal(true);
+                }}
+              >
+                {day}
+              </div>
+            ))}
+          </div>
         </div>
-      )}
+
+        <div
+          ref={gridScrollRef}
+          className="max-h-[400px] overflow-y-auto overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="min-w-[700px] grid grid-cols-[100px_repeat(5,minmax(0,1fr))] md:grid-cols-[160px_repeat(5,minmax(0,1fr))]">
+            {hours.map((hour) => (
+              <React.Fragment key={hour}>
+                {/* Columna de hora sticky */}
+                <div className="border-b border-white font-bold text-white flex items-center justify-center bg-gradient-to-r from-blue-500 to-teal-500 text-white border-r border-gray-200 sticky left-0 z-10">
+                  {hour.slice(0, 5)}
+                </div>
+
+                {/* Celdas por día */}
+                {days.map((day) => {
+                  const fecha = getDateForDay(selectedDate, day);
+                  const citasEnCelda = citasByDate[`${fecha}-${hour.slice(0, 2)}`] || [];
+                  const tieneCitas = citasEnCelda.length > 0;
+
+                  return (
+                    <Card
+                      key={day + hour}
+                      className={`cursor-pointer h-20 flex items-center justify-center text-sm transition-colors rounded-lg ${mode === "edit"
+                        ? "bg-yellow-300 hover:bg-yellow-500"
+                        : tieneCitas
+                          ? "bg-green-400 hover:bg-green-500"
+                          : "bg-blue-50 hover:bg-blue-100"
+                        }`}
+                      onClick={() => {
+                        setSelectedCell({ day, hour });
+                        setSelectedDay(null);
+                        if (mode === "edit") {
+                          handleAddCita(day, hour);
+                        } else {
+                          setShowModal(true);
+                        }
+                      }}
+                    >
+                      <CardContent className="text-center">
+                        {mode === "edit" ? (
+                          <p className="text-gray-800 font-medium flex flex-col items-center">
+                            <Icon name={"plus"} size={20} />Añadir Nuevo
+                          </p>
+                        ) : tieneCitas ? (
+                          <p className="font-semibold text-gray-800">{citasEnCelda.length} cita(s)</p>
+                        ) : (
+                          <p className="text-gray-500">Sin citas</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Botón de guardar */}
+        {mode === "edit" && (
+          <div className="fixed bottom-6 right-6">
+            <Button onClick={() => setMode("view")} className="bg-green-600 text-white shadow-lg cursor-pointer">
+              Guardar cambios
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Modal para AGREGAR citas */}
       {showForm && selectedCell && (

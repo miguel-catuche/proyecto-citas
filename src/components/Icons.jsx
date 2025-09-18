@@ -67,6 +67,19 @@ export default function Icon({ name, size = 24, color = "currentColor", classNam
         <path d="M12 5v14" />
       </svg>
     ),
+    close: (
+      <svg {...commonProps} className={`lucide lucide-x-icon ${className}`}>
+        <path d="M18 6L6 18" />
+        <path d="M6 6l12 12" />
+      </svg>
+    ),
+    menu: (
+      <svg {...commonProps} className={`lucide lucide-menu-icon ${className}`}>
+        <path d="M4 5h16" />
+        <path d="M4 12h16" />
+        <path d="M4 19h16" />
+      </svg>
+    ),
   };
 
   return icons[name] || null;
