@@ -57,7 +57,7 @@ const Header = ({ onLogout }) => {
         </nav>
       </header>
       {menuOpen && (
-        <div className="absolute top-0 right-0 h-full w-64 bg-gray-100 pt-12 shadow-lg z-50 p-6 flex flex-col gap-4">
+        <div className=" top-0 right-0 h-screen w-64 bg-gray-100 pt-12 shadow-lg z-50 p-6 flex flex-col gap-4 fixed">
           <button
             className="cursor-pointer absolute top-4 right-6 text-gray-700"
             onClick={() => setMenuOpen(false)}
@@ -67,7 +67,7 @@ const Header = ({ onLogout }) => {
 
           <NavLink to="/horario" onClick={() => setMenuOpen(false)}>
             {({ isActive }) => (
-              <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+              <Button className={`mt-5 cursor-pointer w-50 px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
                 <Icon name="calendar" />Horario
               </Button>
             )}
@@ -75,7 +75,7 @@ const Header = ({ onLogout }) => {
 
           <NavLink to="/clientes" onClick={() => setMenuOpen(false)}>
             {({ isActive }) => (
-              <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+              <Button className={`cursor-pointer w-50 px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
                 <Icon name="people" />Clientes
               </Button>
             )}
@@ -83,7 +83,7 @@ const Header = ({ onLogout }) => {
 
           <Button
             variant="ghost"
-            className="cursor-pointer text-white bg-red-500 hover:bg-red-600 hover:text-white"
+            className="cursor-pointer text-white w-50 bg-red-500 hover:bg-red-600 hover:text-white"
             onClick={() => {
               setMenuOpen(false);
               onLogout?.();
