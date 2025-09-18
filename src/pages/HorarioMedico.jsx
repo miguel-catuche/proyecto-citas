@@ -487,7 +487,7 @@ export default function HorarioMedico() {
       {/* Modal para AGREGAR citas */}
       {showForm && selectedCell && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold mb-4 text-gray-800">
               Nueva cita para el {selectedCell.day} ({getDateForDay(selectedDate, selectedCell.day)})
             </h3>

@@ -170,7 +170,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             {/* Modal para Añadir Cliente */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96">
                         <h3 className="font-bold mb-4 text-gray-800 text-center">Añadir Nuevo Cliente</h3>
                         <form onSubmit={handleAddSubmit} className="space-y-3">
                             <div>
@@ -211,7 +211,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             {/* Modal para Editar Cliente */}
             {showEditModal && selectedClient && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96">
                         <h3 className="font-bold mb-4 text-gray-800 text-center">Editar Cliente</h3>
                         <form onSubmit={handleEditSubmit} className="space-y-3">
                             <div>
@@ -247,7 +247,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             {/* Modal de Confirmación para Editar */}
             {showEditConfirmModal && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96 text-center">
                         <h3 className="font-bold mb-4 text-gray-800">Confirmar Edición</h3>
                         <p className="text-gray-700 mb-6">
                             ¿Estás seguro de que deseas guardar los cambios para este cliente?
@@ -267,7 +267,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             {/* Modal de Confirmación para Eliminar */}
             {showDeleteModal && selectedClient && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96 text-center">
                         <h3 className="font-bold mb-4 text-gray-800">Confirmar Eliminación</h3>
                         <p className="text-gray-700 mb-6">
                             ¿Estás seguro de que deseas eliminar a "{selectedClient.nombre}"?
@@ -289,7 +289,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
 
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
 
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-[600px]">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[600px]">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient?.nombre || "Cliente"}</h3>
                             <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-black text-white hover:bg-gray-800">Cerrar</Button>

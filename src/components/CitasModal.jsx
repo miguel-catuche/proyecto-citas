@@ -124,7 +124,7 @@ const CitasModal = ({
       {/* Modal de citas por hora */}
       {showModal && selectedCell && !selectedDay && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96">
             <h3 className="font-bold mb-2 text-gray-800">
               Citas en {selectedCell.day} a las {selectedCell.hour.slice(0, 5)}
             </h3>
@@ -169,7 +169,7 @@ const CitasModal = ({
       {/* Modal de citas por día */}
       {showModal && selectedDay && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-[28rem] max-h-[80vh] flex flex-col">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[28rem] max-h-[80vh] flex flex-col">
             <h3 className="font-bold mb-4 text-gray-800">Citas en {selectedDay}</h3>
             {citasByDay[getDateForDay(selectedDate, selectedDay)]?.length === 0 ? (
               <p className="text-gray-500">No hay citas este día</p>
@@ -228,7 +228,7 @@ const CitasModal = ({
       {/* Modal para EDITAR, ELIMINAR y VER citas (con campos de documento y nombre deshabilitados) */}
       {showEditModal && selectedAppointment && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96">
             <h3 className="font-bold mb-4 text-gray-800 text-center">
               Gestionar Cita
             </h3>
@@ -323,16 +323,16 @@ const CitasModal = ({
 
                 </Select>
               </div>
-              <div className="flex justify-between items-center mt-4">
-                <Button type="button" variant="destructive" onClick={handleDelete} className="cursor-pointer">
-                  Eliminar
-                </Button>
-                <div className="flex space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-2">                
+                <div className="flex md:space-x-3 space-x-4">
+                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer md:w-auto w-32">
                     Cancelar
                   </Button>
                   <Button type="submit" className="cursor-pointer">Guardar Cambios</Button>
                 </div>
+                <Button type="button" variant="destructive" onClick={handleDelete} className="cursor-pointer">
+                  Eliminar
+                </Button>
               </div>
             </form>
           </div>
