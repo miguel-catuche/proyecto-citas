@@ -49,7 +49,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
 
     const openEditModal = (cliente) => {
         setSelectedClient(cliente);
-        setFormData({ id: cliente.id, nombre: cliente.nombre });
+        setFormData({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono, motivo: cliente.motivo });
         setShowEditModal(true);
     };
 
@@ -271,6 +271,33 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                                     required
                                 />
+                            </div>
+                            <div>
+                                <label className='block text-sm text-gray-700'>Número de Teléfono</label>
+                                <Input
+                                    inputMode="numeric"
+                                    value={formData.telefono}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (/^\d*$/.test(v)) {
+                                            setFormData({ ...formData, telefono: v });
+                                        }
+                                    }}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-gray-700">Motivo</label>
+                                <select
+                                    value={formData.motivo}
+                                    onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+                                    required
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value='' disabled>Selecciona una opción</option>
+                                    <option value="Terapia">Terapia</option>
+                                    <option value="Valoración">Valoración</option>
+                                </select>
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
                                 <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowEditModal(false)}>
