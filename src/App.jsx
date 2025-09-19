@@ -50,11 +50,11 @@ const App = () => {
     await setDoc(ref, {
       nombre: cliente.nombre,
       id: cliente.id,
+      motivo: cliente.motivo ?? "",
+      telefono: cliente.telefono,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-
-    console.log("Cliente guardado con ID:", cliente.id);
   } catch (error) {
     console.error("Error en handleAddClient:", error.message);
   }

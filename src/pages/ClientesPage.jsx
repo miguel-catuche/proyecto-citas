@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { useCitas } from '@/hooks/useCitas';
 import Icon from '@/components/Icons';
+import toast from 'react-hot-toast';
 
 // Función para asignar colores a los estados de la cita
 const getEstadoColor = (estado) => {
@@ -37,12 +38,12 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
     const [showEditConfirmModal, setShowEditConfirmModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
-    const [formData, setFormData] = useState({ id: '', nombre: '' });
+    const [formData, setFormData] = useState({ id: '', nombre: '',  motivo: '', telefono: ''});
 
     const citas = useCitas();
 
     const openAddModal = () => {
-        setFormData({ id: '', nombre: '' });
+        setFormData({ id: '', nombre: '',  motivo: '', telefono: ''});
         setShowAddModal(true);
     };
 
@@ -67,6 +68,8 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
 
         const id = formData.id?.trim();
         const nombre = formData.nombre?.trim();
+        const telefono = formData.telefono?.trim();
+        const motivo = formData.motivo?.trim();
 
         if (!id || !nombre) {
             toast.error("Debes completar todos los campos");
@@ -77,10 +80,18 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             toast.error("El número de documento debe contener solo dígitos");
             return;
         }
+        if(!/^\d+$/.test(telefono)) {
+            toast.error("El número de teléfono debe contener solo dígitos");
+            return;
+        }
+        if(motivo===""){
+            toast.error("El motivo debe ser alguna opción válida")
+            return;
+        }
 
-        onAddClient({ id, nombre });
+        onAddClient({ id, nombre, motivo, telefono });
         setShowAddModal(false);
-        setFormData({ id: "", nombre: "" });
+        setFormData({ id: "", nombre: "", motivo: "", telefono: ""});
     };
 
 
@@ -114,11 +125,11 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                         <h3 className="text-xl font-semibold text-gray-700">Administración de Clientes</h3>
                         <p className="text-gray-500">Gestiona la información de todos tus pacientes</p>
                     </div>
-                    <div className="flex justify-center md:justify-end">                        
-                    <Button className={"cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"}
-                        onClick={openAddModal}>
-                        <Icon name={"plus"} />Añadir Nuevo Cliente
-                    </Button>
+                    <div className="flex justify-center md:justify-end">
+                        <Button className={"cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"}
+                            onClick={openAddModal}>
+                            <Icon name={"plus"} />Añadir Nuevo Cliente
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -126,8 +137,8 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
                     <div className="">
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">Lista de Clientes</h3>
-                    <p class="text-sm text-gray-500">3 clientes registrados</p>
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">Lista de Clientes</h3>
+                        <p className="text-sm text-gray-500">3 clientes registrados</p>
                     </div>
                 </div>
                 <Table>
@@ -152,13 +163,13 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 <TableCell className="text-sm px-6">{cliente.id}</TableCell>
                                 <TableCell className="flex justify-end space-x-2">
                                     <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
-                                       <Icon className='text-blue-500' name={"calendar"}/> Historial
+                                        <Icon className='text-blue-500' name={"calendar"} /> Historial
                                     </Button>
                                     <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
-                                        <Icon className='text-green-600' name={"edit"}/>Editar
+                                        <Icon className='text-green-600' name={"edit"} />Editar
                                     </Button>
                                     <Button className={"cursor-pointer"} variant="destructive" size="sm" onClick={() => openDeleteModal(cliente)}>
-                                        <Icon name={"delete"}/>Eliminar
+                                        <Icon name={"delete"} />Eliminar
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -197,6 +208,34 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                     required
                                 />
                             </div>
+                            <div>
+                                <label className='block text-sm text-gray-700'>Número de Teléfono</label>
+                                <Input
+                                    inputMode="numeric"
+                                    value={formData.telefono}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (/^\d*$/.test(v)) {
+                                            setFormData({ ...formData, telefono: v });
+                                        }
+                                    }}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-gray-700">Motivo</label>
+                                <select
+                                    value={formData.motivo}
+                                    onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+                                    required
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value='' disabled>Selecciona una opción</option>
+                                    <option value="Terapia">Terapia</option>
+                                    <option value="Valoración">Valoración</option>
+                                </select>
+                            </div>
+
                             <div className="flex justify-end space-x-2 mt-4">
                                 <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowAddModal(false)}>
                                     Cancelar
