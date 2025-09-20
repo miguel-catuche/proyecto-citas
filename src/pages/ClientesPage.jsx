@@ -11,13 +11,13 @@ import toast from 'react-hot-toast';
 const getEstadoColor = (estado) => {
     switch (estado) {
         case 'cancelada':
-            return 'bg-red-200';
+            return 'bg-red-400';
         case 'no-se-presentó':
-            return 'bg-orange-200';
+            return 'bg-orange-400';
         case 'programada':
-            return 'bg-blue-200';
+            return 'bg-blue-400';
         case 'completada':
-            return 'bg-green-200';
+            return 'bg-green-400';
         default:
             return 'bg-gray-200';
     }
@@ -29,7 +29,19 @@ const estadoLabels = {
     "no-se-presentó": "No se presentó",
 };
 
-const soloNumerosRegex = /^[0-9]*$/;
+const motivoLabels = {
+    Terapia: "Terapia",
+    Valoracion: "Valoración"
+}
+
+const getMotivoColors = (motivo) => {
+    switch(motivo){
+        case "Terapia":
+            return 'bg-amber-300';
+        case "Valoracion":
+            return 'bg-fuchsia-300'
+    }
+}
 
 const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient }) => {
     const [showAddModal, setShowAddModal] = useState(false);
@@ -141,18 +153,20 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                         <p className="text-sm text-gray-500">3 clientes registrados</p>
                     </div>
                 </div>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="text-center w-[50px]">Cliente</TableHead>
-                            <TableHead>Documento</TableHead>
-                            <TableHead className="text-center w-[240px]">Acciones</TableHead>
+                <Table className={"min-w-full text-sm"}>
+                    <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
+                        <TableRow className="text-left text-sm font-medium text-gray-700">
+                            <TableHead className="px-4 py-3">Cliente</TableHead>
+                            <TableHead className="px-4 py-3">Documento</TableHead>
+                            <TableHead className="px-4 py-3">Teléfono</TableHead>
+                            <TableHead className="px-4 py-3">Motivo</TableHead>
+                            <TableHead className="px-4 py-3 flex">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {clientes.map(cliente => (
                             <TableRow key={cliente.id}>
-                                <TableCell className="font-semibold text-sm px-4 py-4 gap-2">
+                                <TableCell className="font-semibold text-sm px-4 py-3">
                                     <div className='flex items-center gap-3'>
                                         <div className="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center">
                                             <Icon className='text-blue-400' name={"person"} />
@@ -160,17 +174,25 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                         {cliente.nombre}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-sm px-6">{cliente.id}</TableCell>
-                                <TableCell className="flex justify-end space-x-2">
-                                    <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
-                                        <Icon className='text-blue-500' name={"calendar"} /> Historial
+                                <TableCell className="text-sm px-4 py-3 w-50">{cliente.id}</TableCell>
+                                <TableCell className="text-sm px-4 py-3 w-50">{cliente.telefono}</TableCell>
+                                <TableCell className="text-sm px-4 py-3 w-50">
+                                    <span className={`inline-block min-w-[15px] px-2 text-sm font-medium text-center rounded ${getMotivoColors(cliente.motivo)}`}>
+                                                            {motivoLabels[cliente.motivo] || cliente.motivo}
+                                                        </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-right w-50">
+                                    <div className="flex gap-2">
+                                    <Button title="Ver historial" className={"cursor-pointer bg-blue-100 hover:bg-blue-500 text-blue-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
+                                        <Icon name={"calendar"} /> 
                                     </Button>
-                                    <Button className={"cursor-pointer"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
-                                        <Icon className='text-green-600' name={"edit"} />Editar
+                                    <Button title="Editar" className={"cursor-pointer bg-green-100 hover:bg-green-500 text-green-600 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
+                                        <Icon name={"edit"} />
                                     </Button>
-                                    <Button className={"cursor-pointer"} variant="destructive" size="sm" onClick={() => openDeleteModal(cliente)}>
-                                        <Icon name={"delete"} />Eliminar
+                                    <Button title="Eliminar" className={"cursor-pointer bg-red-100 hover:bg-red-500 text-red-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openDeleteModal(cliente)}>
+                                        <Icon name={"delete"} />
                                     </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -232,7 +254,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 >
                                     <option value='' disabled>Selecciona una opción</option>
                                     <option value="Terapia">Terapia</option>
-                                    <option value="Valoración">Valoración</option>
+                                    <option value="Valoracion">Valoración</option>
                                 </select>
                             </div>
 
@@ -296,7 +318,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 >
                                     <option value='' disabled>Selecciona una opción</option>
                                     <option value="Terapia">Terapia</option>
-                                    <option value="Valoración">Valoración</option>
+                                    <option value="Valoracion">Valoración</option>
                                 </select>
                             </div>
                             <div className="flex justify-end space-x-2 mt-4">
@@ -375,7 +397,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                                     <p><strong>Hora:</strong> {cita.hora}</p>
                                                     <p>
                                                         <strong>Estado:</strong>{" "}
-                                                        <span className={`inline-block min-w-[15px] px-1 text-sm font-medium text-center rounded ${getEstadoColor(cita.estado)}`}>
+                                                        <span className={`inline-block min-w-[15px] px-2 text-sm font-medium text-white text-center rounded ${getEstadoColor(cita.estado)}`}>
                                                             {estadoLabels[cita.estado] || cita.estado}
                                                         </span>
                                                     </p>

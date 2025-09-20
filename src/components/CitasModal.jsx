@@ -14,13 +14,13 @@ import {
 const getEstadoClasses = (estado) => {
   switch (estado) {
     case 'cancelada':
-      return 'bg-red-200';
+      return 'bg-red-300';
     case 'no-se-presentó':
-      return 'bg-orange-200';
+      return 'bg-orange-300';
     case 'programada':
-      return 'bg-blue-200';
+      return 'bg-blue-300';
     case 'completada':
-      return 'bg-green-200';
+      return 'bg-green-300';
     default:
       return 'bg-gray-200';
   }
@@ -32,6 +32,20 @@ const estadoLabels = {
   cancelada: "Cancelada",
   "no-se-presentó": "No se presentó",
 };
+
+const motivoLabels = {
+  Terapia: "Terapia",
+  Valoracion: "Valoración"
+}
+
+const getMotivoColors = (motivo) => {
+  switch (motivo) {
+    case "Terapia":
+      return 'bg-amber-300';
+    case "Valoracion":
+      return 'bg-fuchsia-300'
+  }
+}
 
 const allowedHours = ["07", "08", "09", "10", "14", "15", "16", "17"];
 const allowedMinutes = ["00", "15", "30", "45"];
@@ -53,6 +67,7 @@ const CitasModal = ({
   handleUpdate,
   handleDelete,
   setSelectedCell,
+  clientes
 }) => {
   // SVG del ícono de ojo
   const EyeIcon = () => (
@@ -132,22 +147,30 @@ const CitasModal = ({
               <p className="text-gray-500">No hay citas</p>
             ) : (
               <ul className="text-sm space-y-2 flex flex-col items-start w-full">
-                {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.map((c) => (
-                  <li key={c.id} className={`w-full max-w-[22rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
-                    <div>
-                      {c.paciente} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span onClick={() => {
-                        setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
-                        setShowEditModal(true);
-                        setShowModal(false);
-                      }}>
-                        <EyeIcon />
-                      </span>
-                    </div>
-                  </li>
-                ))}
+                {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.map((c) => {
+                  const cliente = clientes?.find((cl) => cl.id === c.clienteId);
+                  return (
+                    <li key={c.id} className={`w-full max-w-[22rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                      <div>
+                        {c.nombre} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
+                        {cliente?.motivo && (
+                          <div className={`text-xs mt-1 rounded w-fit px-2 text-center ${getMotivoColors(cliente.motivo)}`}>
+                            Motivo: {motivoLabels[cliente.motivo] || cliente.motivo}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 pl-2">
+                        <span onClick={() => {
+                          setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
+                          setShowEditModal(true);
+                          setShowModal(false);
+                        }}>
+                          <EyeIcon />
+                        </span>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             )}
             <div className="flex justify-end mt-4">
@@ -170,7 +193,7 @@ const CitasModal = ({
       {showModal && selectedDay && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[28rem] max-h-[80vh] flex flex-col">
-            <h3 className="font-bold mb-4 text-gray-800">Citas en {selectedDay}</h3>
+            <h3 className="font-bold mb-4 text-gray-800">Número de Citas para el {selectedDay} = {citasByDay[getDateForDay(selectedDate, selectedDay)]?.length} </h3>
             {citasByDay[getDateForDay(selectedDate, selectedDay)]?.length === 0 ? (
               <p className="text-gray-500">No hay citas este día</p>
             ) : (
@@ -185,22 +208,30 @@ const CitasModal = ({
                           <p className="text-gray-400 text-sm">Sin citas</p>
                         ) : (
                           <ul className="text-sm space-y-2 flex flex-col items-start">
-                            {citasHora.map((c) => (
-                              <li key={c.id} className={`w-full max-w-[24rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
-                                <div>
-                                  {c.paciente} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <span onClick={() => {
-                                    setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
-                                    setShowEditModal(true);
-                                    setShowModal(false);
-                                  }}>
-                                    <EyeIcon />
-                                  </span>
-                                </div>
-                              </li>
-                            ))}
+                            {citasHora.map((c) => {
+                              const cliente = clientes?.find((cl) => cl.id === c.clienteId);
+                              return (
+                                <li key={c.id} className={`w-full max-w-[24rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                                  <div>
+                                    {c.nombre} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
+                                    {cliente?.motivo && (
+                                      <div className={`text-xs mt-1 rounded w-fit px-2 text-center ${getMotivoColors(cliente.motivo)}`}>
+                                        Motivo: {motivoLabels[cliente.motivo] || cliente.motivo}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <span onClick={() => {
+                                      setSelectedAppointment({ ...c, fecha: c.fecha, hora: c.hora.slice(0, 5) });
+                                      setShowEditModal(true);
+                                      setShowModal(false);
+                                    }}>
+                                      <EyeIcon />
+                                    </span>
+                                  </div>
+                                </li>
+                              )
+                            })}
                           </ul>
                         )}
                       </div>
@@ -237,7 +268,7 @@ const CitasModal = ({
                 <label className="block text-sm text-gray-700">Nombre del paciente</label>
                 <Input
                   type="text"
-                  value={selectedAppointment.paciente}
+                  value={selectedAppointment.nombre}
                   readOnly
                   className="bg-gray-100 cursor-not-allowed"
                 />
@@ -323,7 +354,7 @@ const CitasModal = ({
 
                 </Select>
               </div>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-2">                
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-2">
                 <div className="flex md:space-x-3 space-x-4">
                   <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer md:w-auto w-32">
                     Cancelar

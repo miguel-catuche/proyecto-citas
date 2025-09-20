@@ -112,7 +112,7 @@ export default function HorarioMedico() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [formData, setFormData] = useState({ documento: "", paciente: "", hora: "" });
+  const [formData, setFormData] = useState({hora: "" });
   const headerScrollRef = useRef(null);
   const gridScrollRef = useRef(null);
 
@@ -199,7 +199,7 @@ export default function HorarioMedico() {
   }, [citas]);
 
   const handleAddCita = useCallback((day, hour) => {
-    setFormData({ documento: "", paciente: "", hora: hour.slice(0, 5) });
+    setFormData({hora: hour.slice(0, 5) });
     setSelectedClient(null);
     setSearchTerm('');
     setSearchResults([]);
@@ -211,9 +211,9 @@ export default function HorarioMedico() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      const { documento, paciente, hora } = formData;
+      const {hora } = formData;
 
-      if (!documento || !paciente || !hora) return;
+      if (!hora) return;
       if (!selectedClient?.id) {
         toast.error("Debes seleccionar un cliente antes de guardar la cita");
         return;
@@ -221,8 +221,7 @@ export default function HorarioMedico() {
 
       const nuevaCita = {
         clienteId: selectedClient.id,
-        paciente,
-        documento,
+        nombre: selectedClient.nombre,
         fecha: getDateForDay(selectedDate, selectedCell.day),
         hora: `${hora}:00`,
         estado: "programada",
@@ -232,10 +231,10 @@ export default function HorarioMedico() {
 
       try {
         await addDoc(collection(db, "citas"), nuevaCita);
-        toast.success(`Cita para ${paciente} añadida a las ${hora}`);
+        toast.success(`Cita para ${selectedClient.nombre} añadida a las ${hora}`);
         setShowForm(false);
         setSelectedClient(null);
-        setFormData({ documento: "", paciente: "", hora: "" });
+        setFormData({hora: "" });
       } catch (error) {
         console.error("Error al guardar la cita:", error);
         toast.error("Hubo un problema al guardar la cita");
@@ -248,11 +247,11 @@ export default function HorarioMedico() {
     e.preventDefault();
     if (!selectedAppointment?.docId) return;
 
-    const { paciente, fecha, hora, estado, clienteId } = selectedAppointment;
+    const { nombre, fecha, hora, estado, clienteId } = selectedAppointment;
 
     try {
       await updateDoc(doc(db, "citas", selectedAppointment.docId), {
-        paciente,
+        nombre,
         fecha,
         hora,
         estado,
@@ -317,13 +316,6 @@ export default function HorarioMedico() {
 
   const handleSelectClient = (client) => {
     setSelectedClient(client);
-    setFormData({
-      ...formData,
-      documento: client.id,
-      paciente: client.nombre,
-      clienteId: client.id,
-    });
-
     setSearchTerm('');
     setSearchResults([]);
   };
@@ -619,6 +611,7 @@ export default function HorarioMedico() {
         handleDelete={handleDelete}
         setSelectedCell={setSelectedCell}
         setSelectedDay={setSelectedDay}
+        clientes={clientes}
       />
     </div>
   );

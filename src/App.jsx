@@ -74,9 +74,9 @@ const App = () => {
   const handleAddCita = async (cita) => {
     await addDoc(collection(db, "citas"), {
       clienteId: cita.clienteId,
+      nombre: cita.nombre,
       fecha: cita.fecha,
       hora: cita.hora,
-      servicio: cita.servicio,
       estado: "programada",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
