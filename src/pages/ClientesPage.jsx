@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,7 +35,7 @@ const motivoLabels = {
 }
 
 const getMotivoColors = (motivo) => {
-    switch(motivo){
+    switch (motivo) {
         case "Terapia":
             return 'bg-amber-300';
         case "Valoracion":
@@ -50,12 +50,12 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
     const [showEditConfirmModal, setShowEditConfirmModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
-    const [formData, setFormData] = useState({ id: '', nombre: '',  motivo: '', telefono: ''});
-
+    const [formData, setFormData] = useState({ id: '', nombre: '', motivo: '', telefono: '' });
+    const [clientesAleatorios, setClientesAleatorios] = useState([]);
     const citas = useCitas();
 
     const openAddModal = () => {
-        setFormData({ id: '', nombre: '',  motivo: '', telefono: ''});
+        setFormData({ id: '', nombre: '', motivo: '', telefono: '' });
         setShowAddModal(true);
     };
 
@@ -92,18 +92,18 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             toast.error("El número de documento debe contener solo dígitos");
             return;
         }
-        if(!/^\d+$/.test(telefono)) {
+        if (!/^\d+$/.test(telefono)) {
             toast.error("El número de teléfono debe contener solo dígitos");
             return;
         }
-        if(motivo===""){
+        if (motivo === "") {
             toast.error("El motivo debe ser alguna opción válida")
             return;
         }
 
         onAddClient({ id, nombre, motivo, telefono });
         setShowAddModal(false);
-        setFormData({ id: "", nombre: "", motivo: "", telefono: ""});
+        setFormData({ id: "", nombre: "", motivo: "", telefono: "" });
     };
 
 
@@ -124,8 +124,24 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
     };
 
     const historialCitas = Array.isArray(citas) && selectedClient?.id
-        ? citas.filter((cita) => String(cita.clienteId) === String(selectedClient.id))
+        ? [...citas]
+            .filter((cita) => String(cita.clienteId) === String(selectedClient.id))
+            .sort((a, b) => {
+                const fechaA = new Date(`${a.fecha}T${a.hora}`);
+                const fechaB = new Date(`${b.fecha}T${b.hora}`);
+                return fechaB - fechaA;
+            })
         : [];
+
+    useEffect(() => {
+        if (clientes.length > 0) {
+            const seleccion = [...clientes]
+                .sort(() => Math.random() - 0.5) // mezcla el array
+                .slice(0, 10); // toma solo 10
+            setClientesAleatorios(seleccion);
+        }
+    }, [clientes]);
+
 
 
     return (
@@ -146,11 +162,11 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                 </CardContent>
             </Card>
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white rounded-xl shadow-md">
                 <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
                     <div className="">
                         <h3 className="text-lg font-bold text-gray-900 mb-1">Lista de Clientes</h3>
-                        <p className="text-sm text-gray-500">3 clientes registrados</p>
+                        <p className="text-sm text-gray-500">{clientes.length} clientes registrados</p>
                     </div>
                 </div>
                 <Table className={"min-w-full text-sm"}>
@@ -164,7 +180,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {clientes.map(cliente => (
+                        {clientesAleatorios.map(cliente => (
                             <TableRow key={cliente.id}>
                                 <TableCell className="font-semibold text-sm px-4 py-3">
                                     <div className='flex items-center gap-3'>
@@ -178,20 +194,20 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 <TableCell className="text-sm px-4 py-3 w-50">{cliente.telefono}</TableCell>
                                 <TableCell className="text-sm px-4 py-3 w-50">
                                     <span className={`inline-block min-w-[15px] px-2 text-sm font-medium text-center rounded ${getMotivoColors(cliente.motivo)}`}>
-                                                            {motivoLabels[cliente.motivo] || cliente.motivo}
-                                                        </span>
+                                        {motivoLabels[cliente.motivo] || cliente.motivo}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-right w-50">
                                     <div className="flex gap-2">
-                                    <Button title="Ver historial" className={"cursor-pointer bg-blue-100 hover:bg-blue-500 text-blue-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
-                                        <Icon name={"calendar"} /> 
-                                    </Button>
-                                    <Button title="Editar" className={"cursor-pointer bg-green-100 hover:bg-green-500 text-green-600 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
-                                        <Icon name={"edit"} />
-                                    </Button>
-                                    <Button title="Eliminar" className={"cursor-pointer bg-red-100 hover:bg-red-500 text-red-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openDeleteModal(cliente)}>
-                                        <Icon name={"delete"} />
-                                    </Button>
+                                        <Button title="Ver historial" className={"cursor-pointer bg-blue-100 hover:bg-blue-500 text-blue-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openHistoryModal(cliente)}>
+                                            <Icon name={"calendar"} />
+                                        </Button>
+                                        <Button title="Editar" className={"cursor-pointer bg-green-100 hover:bg-green-500 text-green-600 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openEditModal(cliente)}>
+                                            <Icon name={"edit"} />
+                                        </Button>
+                                        <Button title="Eliminar" className={"cursor-pointer bg-red-100 hover:bg-red-500 text-red-500 hover:text-white transition-colors"} variant="outline" size="sm" onClick={() => openDeleteModal(cliente)}>
+                                            <Icon name={"delete"} />
+                                        </Button>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -262,7 +278,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowAddModal(false)}>
                                     Cancelar
                                 </Button>
-                                <Button className={"cursor-pointer"} type="submit">Guardar</Button>
+                                <Button className={"cursor-pointer bg-green-600 hover:bg-green-700"} type="submit">Guardar</Button>
                             </div>
                         </form>
                     </div>
@@ -325,7 +341,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowEditModal(false)}>
                                     Cancelar
                                 </Button>
-                                <Button className={"cursor-pointer"} type="submit">Guardar Cambios</Button>
+                                <Button className={"cursor-pointer bg-green-600 hover:bg-green-700"} type="submit">Guardar Cambios</Button>
                             </div>
                         </form>
                     </div>
@@ -344,7 +360,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                             <Button className={"cursor-pointer"} variant="outline" onClick={() => setShowEditConfirmModal(false)}>
                                 Cancelar
                             </Button>
-                            <Button className={"cursor-pointer"} onClick={handleEditConfirm}>
+                            <Button className={"cursor-pointer bg-green-600 hover:bg-green-700"} onClick={handleEditConfirm}>
                                 Confirmar
                             </Button>
                         </div>
@@ -364,7 +380,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                             <Button className={"cursor-pointer"} variant="outline" onClick={() => setShowDeleteModal(false)}>
                                 No
                             </Button>
-                            <Button className={"cursor-pointer"} variant="destructive" onClick={handleDeleteConfirm}>
+                            <Button className={"cursor-pointer hover:bg-red-700"} variant="destructive" onClick={handleDeleteConfirm}>
                                 Sí, eliminar
                             </Button>
                         </div>
@@ -380,7 +396,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                     <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[600px]">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient?.nombre || "Cliente"}</h3>
-                            <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-black text-white hover:bg-gray-800">Cerrar</Button>
+                            <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-red-600 text-white hover:bg-red-700">Cerrar</Button>
                         </div>
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
 

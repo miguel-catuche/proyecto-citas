@@ -112,7 +112,7 @@ export default function HorarioMedico() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [formData, setFormData] = useState({hora: "" });
+  const [formData, setFormData] = useState({ hora: "" });
   const headerScrollRef = useRef(null);
   const gridScrollRef = useRef(null);
 
@@ -199,7 +199,7 @@ export default function HorarioMedico() {
   }, [citas]);
 
   const handleAddCita = useCallback((day, hour) => {
-    setFormData({hora: hour.slice(0, 5) });
+    setFormData({ hora: hour.slice(0, 5) });
     setSelectedClient(null);
     setSearchTerm('');
     setSearchResults([]);
@@ -211,7 +211,7 @@ export default function HorarioMedico() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      const {hora } = formData;
+      const { hora } = formData;
 
       if (!hora) return;
       if (!selectedClient?.id) {
@@ -234,7 +234,7 @@ export default function HorarioMedico() {
         toast.success(`Cita para ${selectedClient.nombre} añadida a las ${hora}`);
         setShowForm(false);
         setSelectedClient(null);
-        setFormData({hora: "" });
+        setFormData({ hora: "" });
       } catch (error) {
         console.error("Error al guardar la cita:", error);
         toast.error("Hubo un problema al guardar la cita");
@@ -363,12 +363,12 @@ export default function HorarioMedico() {
             >
               {mode === "view" ? (
                 <>
-                  <Icon name="plus"/>
+                  <Icon name="plus" />
                   Añadir Agenda
                 </>
               ) : (
                 <>
-                  <Icon name="calendar"/>
+                  <Icon name="calendar" />
                   Ver Agenda
                 </>
               )}
@@ -393,19 +393,26 @@ export default function HorarioMedico() {
               Horario
             </div>
 
-            {days.map((day) => (
-              <div
-                key={day}
-                className="font-bold text-black bg-blue-100 hover:bg-blue-200 py-2 text-center cursor-pointer"
-                onClick={() => {
-                  setSelectedDay(day);
-                  setSelectedCell(null);
-                  setShowModal(true);
-                }}
-              >
-                {day}
-              </div>
-            ))}
+            {days.map((day) => {
+              const fechaStr = getDateForDay(selectedDate, day);
+              const [y, m, d] = fechaStr.split("-").map(Number);
+              const fecha = new Date(y, m - 1, d);
+              const numeroDia = fecha.getDate();
+              return (
+                <div
+                  key={day}
+                  className="font-bold text-black bg-blue-100 hover:bg-blue-200 py-1 text-center cursor-pointer flex flex-col items-center"
+                  onClick={() => {
+                    setSelectedDay(day);
+                    setSelectedCell(null);
+                    setShowModal(true);
+                  }}
+                >
+                  <span>{day}</span>
+                  <span className="text-sm text-gray-600 font-normal">{numeroDia}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -585,7 +592,7 @@ export default function HorarioMedico() {
                     <Button className={"cursor-pointer"} type="button" variant="outline" onClick={() => setShowForm(false)}>
                       Cancelar
                     </Button>
-                    <Button className={"cursor-pointer"} type="submit">Guardar</Button>
+                    <Button className={"cursor-pointer bg-green-600 hover:bg-green-700"} type="submit">Guardar</Button>
                   </div>
                 </>
               )}

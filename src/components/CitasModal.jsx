@@ -259,7 +259,7 @@ const CitasModal = ({
       {/* Modal para EDITAR, ELIMINAR y VER citas (con campos de documento y nombre deshabilitados) */}
       {showEditModal && selectedAppointment && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-80 md:w-96">
             <h3 className="font-bold mb-4 text-gray-800 text-center">
               Gestionar Cita
             </h3>
@@ -355,15 +355,15 @@ const CitasModal = ({
                 </Select>
               </div>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-4 gap-2">
-                <div className="flex md:space-x-3 space-x-4">
-                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer md:w-auto w-32">
+                <div className="flex md:gap-3 justify-center gap-4">
+                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="cursor-pointer flex-1">
                     Cancelar
                   </Button>
-                  <Button type="submit" className="cursor-pointer">Guardar Cambios</Button>
-                </div>
-                <Button type="button" variant="destructive" onClick={handleDelete} className="cursor-pointer">
+                  <Button type="button" variant="destructive" onClick={handleDelete} className="cursor-pointer flex-1 hover:bg-red-700">
                   Eliminar
-                </Button>
+                </Button>                  
+                </div>
+                <Button type="submit" className="cursor-pointer bg-green-600 hover:bg-green-700">Guardar Cambios</Button>
               </div>
             </form>
           </div>

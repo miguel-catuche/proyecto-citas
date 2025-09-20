@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { auth, db } from "./firebase";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc ,onSnapshot, serverTimestamp } from "firebase/firestore";
-import { Toaster } from 'react-hot-toast';
+import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import toast, { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import AuthenticatedApp from "./AuthenticatedApp";
 
@@ -41,24 +41,31 @@ const App = () => {
   }, [user]);
 
   const handleAddClient = async (cliente) => {
-  try {
-    if (!cliente.id || cliente.id.trim() === "") {
-      throw new Error("ID de cliente inválido");
-    }
+    try {
+      if (!cliente.id || cliente.id.trim() === "") {
+        throw new Error("ID de cliente inválido");
+      }
 
-    const ref = doc(db, "clientes", cliente.id);
-    await setDoc(ref, {
-      nombre: cliente.nombre,
-      id: cliente.id,
-      motivo: cliente.motivo ?? "",
-      telefono: cliente.telefono,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error("Error en handleAddClient:", error.message);
-  }
-};
+      const ref = doc(db, "clientes", cliente.id);
+      const snapshot = await getDoc(ref);
+
+      if (snapshot.exists()) {
+        toast.error("Ya existe un cliente con ese número de documento");
+        return;
+      }
+      await setDoc(ref, {
+        nombre: cliente.nombre,
+        id: cliente.id,
+        motivo: cliente.motivo ?? "",
+        telefono: cliente.telefono,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      toast.success("Cliente agregado correctamente");
+    } catch (error) {
+      toast.error("Ocurrió un error al agregar el cliente");
+    }
+  };
 
 
 
@@ -103,9 +110,25 @@ const App = () => {
   if (loading) return <p className="text-center mt-10">Cargando...</p>;
 
   return (
-    
+
     <Router basename="/">
-      <Toaster position="top-center"/>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            fontSize: "1.2rem",   // 🔥 texto más grande
+            padding: "16px 20px", // más espacio interno
+            borderRadius: "10px",
+          },
+          success: {
+            style: { background: "#d1fae5", color: "#065f46" }, // verde éxito
+          },
+          error: {
+            style: { background: "#fee2e2", color: "#991b1b" }, // rojo error
+          },
+        }}
+        containerStyle={{ zIndex: 9999 }} // asegura que quede encima de modales
+      />
       {user ? (
         <AuthenticatedApp
           clientes={clientes}
