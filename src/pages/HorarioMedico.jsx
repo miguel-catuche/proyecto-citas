@@ -487,7 +487,7 @@ export default function HorarioMedico() {
       {showForm && selectedCell && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-96" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold mb-4 text-gray-800">
+            <h3 className="font-bold mb-2 text-gray-800">
               Nueva cita para el {selectedCell.day} ({getDateForDay(selectedDate, selectedCell.day)})
             </h3>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -517,12 +517,22 @@ export default function HorarioMedico() {
                 // Buscador de clientes
                 <div>
                   <label className="block text-sm text-gray-700">Buscar paciente</label>
-                  <Input
-                    type="text"
-                    placeholder="Buscar por nombre o documento..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                  />
+                  <div className="relative w-full mt-3">
+                    <Icon
+                      name="search"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="Buscar por nombre o documento..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                text-sm text-gray-700 placeholder-gray-400"
+                    />
+                  </div>
+
                   {searchResults.length > 0 && (
                     <ul className="mt-2 border rounded-md max-h-48 overflow-y-auto">
                       {searchResults.map(client => (

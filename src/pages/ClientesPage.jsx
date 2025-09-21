@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useCitas } from '@/hooks/useCitas';
+import { useMemo } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import Icon from '@/components/Icons';
 import toast from 'react-hot-toast';
 
@@ -52,6 +54,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
     const [selectedClient, setSelectedClient] = useState(null);
     const [formData, setFormData] = useState({ id: '', nombre: '', motivo: '', telefono: '' });
     const [clientesAleatorios, setClientesAleatorios] = useState([]);
+    const [query, setQuery] = useState("");
     const citas = useCitas();
 
     const openAddModal = () => {
@@ -142,6 +145,16 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
         }
     }, [clientes]);
 
+    const debouncedQuery = useDebounce(query, 300);
+
+    const filteredClients = useMemo(() => {
+        if (!debouncedQuery) return [];
+        return clientes.filter((c) =>
+            c.nombre.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            c.id.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            c.telefono?.includes(debouncedQuery)
+        );
+    }, [clientes, debouncedQuery]);
 
 
     return (
@@ -159,6 +172,17 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                             <Icon name={"plus"} />Añadir Nuevo Cliente
                         </Button>
                     </div>
+                    <div className="flex items-center w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
+                        <Icon name="search" className="text-gray-400 mr-2" />
+                        <input
+                            type="text"
+                            placeholder="Buscar cliente..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            className="w-full outline-none text-sm text-gray-700 placeholder-gray-400"
+                        />
+                    </div>
+
                 </CardContent>
             </Card>
 
@@ -180,7 +204,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {clientesAleatorios.map(cliente => (
+                        {(debouncedQuery ? filteredClients : clientesAleatorios).map(cliente => (
                             <TableRow key={cliente.id}>
                                 <TableCell className="font-semibold text-sm px-4 py-3">
                                     <div className='flex items-center gap-3'>
@@ -212,6 +236,13 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {(debouncedQuery && filteredClients.length === 0) && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                                    No se encontraron clientes
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>
