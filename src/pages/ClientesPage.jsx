@@ -28,7 +28,7 @@ const estadoLabels = {
     programada: "Programada",
     completada: "Completada",
     cancelada: "Cancelada",
-    "no-se-presentó": "No se presentó",
+    "no-se-presento": "No se presentó",
 };
 
 const motivoLabels = {

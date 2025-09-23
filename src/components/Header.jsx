@@ -34,6 +34,14 @@ const Header = ({ onLogout }) => {
                 )}
               </NavLink>
 
+              <NavLink to="/metricas">
+                {({ isActive }) => (
+                  <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                    <Icon name="calendar" />Estadísticas
+                  </Button>
+                )}
+              </NavLink>
+
               <NavLink to="/clientes">
                 {({ isActive }) => (
                   <Button className={`cursor-pointer px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
@@ -72,7 +80,13 @@ const Header = ({ onLogout }) => {
               </Button>
             )}
           </NavLink>
-
+          <NavLink to="/metricas" onClick={() => setMenuOpen(false)}>
+            {({ isActive }) => (
+              <Button className={`cursor-pointer w-50 px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>
+                <Icon name="calendar" />Estadísticas
+              </Button>
+            )}
+          </NavLink>
           <NavLink to="/clientes" onClick={() => setMenuOpen(false)}>
             {({ isActive }) => (
               <Button className={`cursor-pointer w-50 px-6 py-2.5 ${isActive ? activeColorClasses : inactiveColorClasses}`}>

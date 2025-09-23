@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import ClientesPage from "./pages/ClientesPage";
 import HorarioMedico from "./pages/HorarioMedico";
+import Metricas from "./pages/Metricas";
 import { AnimatePresence } from "framer-motion";
 import AnimatedPage from "./components/AnimatedPage";
 
@@ -52,6 +53,17 @@ const AuthenticatedApp = ({
                         onAddCita={onAddCita}
                         onUpdateCita={onUpdateCita}
                         onDeleteCita={onDeleteCita}
+                      />
+                    </AnimatedPage>
+                  }
+                />
+                <Route
+                  path="/metricas"
+                  element={
+                    <AnimatedPage>
+                      <Metricas
+                        citas={citas}
+                        clientes={clientes}
                       />
                     </AnimatedPage>
                   }

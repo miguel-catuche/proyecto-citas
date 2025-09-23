@@ -15,7 +15,7 @@ const getEstadoClasses = (estado) => {
   switch (estado) {
     case 'cancelada':
       return 'bg-red-300';
-    case 'no-se-presentó':
+    case 'no-se-presento':
       return 'bg-orange-300';
     case 'programada':
       return 'bg-blue-300';
@@ -30,7 +30,7 @@ const estadoLabels = {
   programada: "Programada",
   completada: "Completada",
   cancelada: "Cancelada",
-  "no-se-presentó": "No se presentó",
+  "no-se-presento": "No se presentó",
 };
 
 const motivoLabels = {
@@ -348,7 +348,7 @@ const CitasModal = ({
                   <SelectContent>
                     <SelectItem value="programada">Programada</SelectItem>
                     <SelectItem value="completada">Completada</SelectItem>
-                    <SelectItem value="no-se-presentó">No se presentó</SelectItem>
+                    <SelectItem value="no-se-presento">No se presentó</SelectItem>
                     <SelectItem value="cancelada">Cancelada</SelectItem>
                   </SelectContent>
 
