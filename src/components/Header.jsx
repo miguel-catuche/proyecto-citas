@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import Icon from "./Icons";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 const Header = ({ onLogout }) => {
   const navigate = useNavigate();
 
@@ -10,12 +11,27 @@ const Header = ({ onLogout }) => {
   const inactiveColorClasses = "text-gray-600 bg-transparent hover:bg-transparent border-none outline-none shadow-none";
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const TituloDinamico = () => {
+    const location = useLocation();
+
+    const getTitulo = () => {
+      if (location.pathname === "/clientes") return "Gestión de Clientes";
+      if (location.pathname === "/horario") return "Horario Semanal";
+      if (location.pathname === "/metricas") return "Estadísticas";
+      return "Bienvenido";
+    };
+
+    return (
+      <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-blue-500 text-2xl font-bold">
+        {getTitulo()}
+      </h1>
+    );
+  };
 
   return (
     <>
       <header className="relative bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <h1 className="text-2xl font-bold text-gray-800">Panel de Administración</h1>
-
+        <TituloDinamico />
         <nav className="flex items-center gap-4">
           <button
             className="md:hidden absolute top-4 right-6 z-50 text-gray-700 cursor-pointer"

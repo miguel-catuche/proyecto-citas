@@ -14,13 +14,13 @@ import {
 const getEstadoClasses = (estado) => {
   switch (estado) {
     case 'cancelada':
-      return 'bg-red-300';
+      return 'bg-red-200 border border-red-300 text-red-900 font-semibold';
     case 'no-se-presento':
-      return 'bg-orange-300';
+      return 'bg-orange-200 border border-orange-300 text-orange-900 font-semibold';
     case 'programada':
-      return 'bg-blue-300';
+      return 'bg-blue-200 border border-blue-300 text-blue-900 font-semibold';
     case 'completada':
-      return 'bg-green-300';
+      return 'bg-green-200 border border-green-300 text-green-900 font-semibold';
     default:
       return 'bg-gray-200';
   }
@@ -41,11 +41,14 @@ const motivoLabels = {
 const getMotivoColors = (motivo) => {
   switch (motivo) {
     case "Terapia":
-      return 'bg-amber-300';
+      return 'bg-amber-100 text-amber-800';
     case "Valoracion":
-      return 'bg-fuchsia-300'
+      return 'bg-sky-100 text-sky-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
-}
+};
+
 
 const allowedHours = ["07", "08", "09", "10", "14", "15", "16", "17"];
 const allowedMinutes = ["00", "15", "30", "45"];
@@ -150,7 +153,7 @@ const CitasModal = ({
                 {citasByDate[`${getDateForDay(selectedDate, selectedCell.day)}-${selectedCell.hour.slice(0, 2)}`]?.map((c) => {
                   const cliente = clientes?.find((cl) => cl.id === c.clienteId);
                   return (
-                    <li key={c.id} className={`w-full max-w-[22rem] text-left text-gray-900 flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
+                    <li key={c.id} className={`w-full max-w-[22rem] text-left flex justify-between items-center px-4 py-2 rounded-lg ${getEstadoClasses(c.estado)}`}>
                       <div>
                         {c.nombre} - Hora: {c.hora.slice(0, 5)} - Estado: {estadoLabels[c.estado] || c.estado}
                         {cliente?.motivo && (
