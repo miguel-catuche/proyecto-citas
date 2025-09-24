@@ -1,6 +1,7 @@
 import React from "react";
 import DonutCard from "@/components/DonutCard";
 import Icon from "@/components/Icons";
+import ExportadorMensual from "@/components/ExportadorMensual";
 const Metricas = ({ clientes, citas }) => {
 
     const hoy = new Date();
@@ -202,6 +203,9 @@ const Metricas = ({ clientes, citas }) => {
                     </div>
                 </div>
             </div>
+            <div className="mt-6">
+    <ExportadorMensual citas={citas} clientes={clientes} />
+  </div>
         </div>
 
     );
