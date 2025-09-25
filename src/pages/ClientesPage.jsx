@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,13 +8,15 @@ import { useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import Icon from '@/components/Icons';
 import toast from 'react-hot-toast';
+import html2pdf from 'html2pdf.js';
+import HistorialDocumento from '@/components/HistorialDocumento';
 
 // Función para asignar colores a los estados de la cita
 const getEstadoColor = (estado) => {
     switch (estado) {
         case 'cancelada':
             return 'bg-red-400';
-        case 'no-se-presentó':
+        case 'no-se-presento':
             return 'bg-orange-400';
         case 'programada':
             return 'bg-blue-400';
@@ -155,6 +157,21 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
             c.telefono?.includes(debouncedQuery)
         );
     }, [clientes, debouncedQuery]);
+
+
+    const pdfRef = useRef();
+
+    const handlePrint = () => {
+        const element = pdfRef.current;
+        const opt = {
+            margin: 0.5,
+            filename: `historial-${selectedClient?.nombre || "cliente"}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    };
 
 
     return (
@@ -425,10 +442,30 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
 
                     <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[600px]">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-gray-800 text-2xl">Historial de Citas de {selectedClient?.nombre || "Cliente"}</h3>
-                            <Button variant="ghost" onClick={() => setShowHistoryModal(false)} className="cursor-pointer hover:text-white bg-red-600 text-white hover:bg-red-700">Cerrar</Button>
+                        <div className="flex flex-wrap justify-center sm:justify-between items-center gap-4 mb-4">
+                            <h3 className="font-bold text-gray-800 text-xl text-center sm:text-left w-full sm:w-auto">
+                                Historial de Citas de {selectedClient?.nombre || "Cliente"}
+                            </h3>
+                            <div className="flex gap-2">
+                                {historialCitas.length > 0 && (
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handlePrint}
+                                        className="cursor-pointer hover:text-white bg-blue-600 text-white hover:bg-blue-700"
+                                    >
+                                        Imprimir
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setShowHistoryModal(false)}
+                                    className="cursor-pointer hover:text-white bg-red-600 text-white hover:bg-red-700"
+                                >
+                                    Cerrar
+                                </Button>
+                            </div>
                         </div>
+
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
 
                             {historialCitas.length > 0 ? (
@@ -462,7 +499,15 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                     </div>
                 </div>
             )}
+            {/* Render oculto para impresión */}
+            <div className="hidden">
+                <div ref={pdfRef}>
+                    <HistorialDocumento cliente={selectedClient} citas={historialCitas} />
+                </div>
+            </div>
+
         </div>
+
     );
 };
 
