@@ -442,11 +442,12 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
 
                     <div className="bg-white rounded-xl shadow-lg p-6 w-84 md:w-[600px]">
-                        <div className="flex flex-wrap justify-center sm:justify-between items-center gap-4 mb-4">
-                            <h3 className="font-bold text-gray-800 text-xl text-center sm:text-left w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                            <h3 className="font-bold text-gray-800 text-xl text-center sm:text-left">
                                 Historial de Citas de {selectedClient?.nombre || "Cliente"}
                             </h3>
-                            <div className="flex gap-2">
+
+                            <div className="flex justify-center sm:justify-end gap-2">
                                 {historialCitas.length > 0 && (
                                     <Button
                                         variant="ghost"
@@ -465,6 +466,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                                 </Button>
                             </div>
                         </div>
+
 
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
 
@@ -504,7 +506,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                 <div ref={pdfRef}>
                     <HistorialDocumento cliente={selectedClient} citas={historialCitas} />
                 </div>
-            </div>            
+            </div>
         </div>
 
     );

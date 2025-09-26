@@ -18,7 +18,7 @@ const getEstadoClasses = (estado) => {
     case 'no-se-presento':
       return 'bg-orange-200 border border-orange-300 text-orange-900 font-semibold';
     case 'programada':
-      return 'bg-blue-200 border border-blue-300 text-blue-900 font-semibold';
+      return 'bg-blue-200 border border-blue-300 text-blue-800 font-semibold';
     case 'completada':
       return 'bg-green-200 border border-green-300 text-green-900 font-semibold';
     default:
