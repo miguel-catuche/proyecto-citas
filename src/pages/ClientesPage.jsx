@@ -504,8 +504,7 @@ const ClientesPage = ({ clientes, onAddClient, onUpdateClient, onDeleteClient })
                 <div ref={pdfRef}>
                     <HistorialDocumento cliente={selectedClient} citas={historialCitas} />
                 </div>
-            </div>
-
+            </div>            
         </div>
 
     );

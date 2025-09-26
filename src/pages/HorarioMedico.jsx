@@ -223,7 +223,7 @@ export default function HorarioMedico() {
         clienteId: selectedClient.id,
         nombre: selectedClient.nombre,
         fecha: getDateForDay(selectedDate, selectedCell.day),
-        hora: `${hora}:00`,
+        hora: hora.split(":").slice(0, 2).join(":"),
         estado: "programada",
         creadoEn: serverTimestamp(),
         actualizadoEn: serverTimestamp(),
@@ -581,7 +581,7 @@ export default function HorarioMedico() {
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            hora: `${prev.hora.split(":")[0] || "07"}:${e.target.value}`,
+                            hora: `${prev.hora.split(":")[0] || ""}:${e.target.value}`,
                           }))
                         }
                         required
